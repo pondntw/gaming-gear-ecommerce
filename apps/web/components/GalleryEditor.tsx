@@ -77,18 +77,18 @@ export function GalleryEditor({
           <div
             key={src + i}
             className={`group relative aspect-square overflow-hidden rounded-lg border-2 ${
-              i === 0 ? 'border-neon-pink' : 'border-line'
+              i === 0 ? 'border-accent' : 'border-line'
             }`}
           >
             <ProductImage src={src} category={category} alt={`รูปที่ ${i + 1}`} />
             {i === 0 && (
-              <span className="absolute left-1 top-1 rounded bg-neon-pink px-1.5 py-0.5 text-[10px] font-semibold">ปก</span>
+              <span className="absolute left-1 top-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-semibold">ปก</span>
             )}
             <button
               type="button"
               onClick={() => onChange(images.filter((_, j) => j !== i))}
               aria-label={`ลบรูปที่ ${i + 1}`}
-              className="absolute right-1 top-1 rounded-full bg-black/70 p-1 hover:bg-red-600"
+              className="absolute right-1 top-1 rounded-full bg-black/70 p-1 hover:bg-danger"
             >
               <X size={12} />
             </button>
@@ -114,7 +114,7 @@ export function GalleryEditor({
           </div>
         ))}
         {room > 0 && (
-          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-line text-xs text-muted hover:border-neon-cyan hover:text-neon-cyan">
+          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-line text-xs text-muted hover:border-accent hover:text-accent">
             <Upload size={18} />
             {uploading ? `กำลังอัปโหลด ${uploading} รูป...` : 'อัปโหลดรูป'}
             <input

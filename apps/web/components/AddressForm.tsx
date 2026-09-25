@@ -59,7 +59,7 @@ export function AddressForm({
         />
       </div>
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" className="accent-[#22e3ff]" checked={form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} />
+        <input type="checkbox" className="accent-accent" checked={form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} />
         ตั้งเป็นที่อยู่หลัก
       </label>
       <div className="flex gap-2">

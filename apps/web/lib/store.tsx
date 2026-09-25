@@ -85,14 +85,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-live="polite">
+      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex flex-col items-center gap-2 px-4" aria-live="polite">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`rounded-lg border px-4 py-3 text-sm shadow-lg backdrop-blur ${
-              t.kind === 'error'
-                ? 'border-red-500/60 bg-red-950/80 text-red-100'
-                : 'border-cyan-400/60 bg-slate-950/90 text-cyan-50'
+            className={`rounded-full px-5 py-2.5 text-sm shadow-[0_8px_30px_rgb(0_0_0/0.18)] backdrop-blur-xl ${
+              t.kind === 'error' ? 'bg-danger/95 text-white' : 'bg-ink/90 text-white'
             }`}
           >
             {t.message}

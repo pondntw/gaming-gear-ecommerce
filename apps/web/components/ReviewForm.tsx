@@ -53,7 +53,7 @@ export function ReviewForm({
   };
 
   return (
-    <div className="card space-y-3 border-neon-violet/50 p-4">
+    <div className="card space-y-3 border-accent/50 p-4">
       <p className="font-medium">{existing ? 'แก้ไขรีวิวของคุณ' : 'เขียนรีวิวสินค้านี้'}</p>
       <StarInput value={rating} onChange={setRating} />
       <textarea
