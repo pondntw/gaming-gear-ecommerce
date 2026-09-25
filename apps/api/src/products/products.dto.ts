@@ -13,6 +13,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 export const PRODUCT_SORTS = ['newest', 'price_asc', 'price_desc', 'name', 'rating'] as const;
@@ -22,6 +23,12 @@ export type ProductSort = (typeof PRODUCT_SORTS)[number];
 const IMAGE_URL = /^(https?:\/\/|\/(?!\/))\S+$/;
 const IMAGE_URL_MSG = { each: true, message: 'รูปสินค้าต้องเป็น URL (http/https) หรือ path ที่ขึ้นต้นด้วย /' };
 export const MAX_PRODUCT_IMAGES = 10;
+
+/** One row of the product spec table, e.g. { label: 'น้ำหนัก', value: '60 กรัม' }. */
+export class SpecDto {
+  @IsString() @MinLength(1) @MaxLength(60) label: string;
+  @IsString() @MinLength(1) @MaxLength(300) value: string;
+}
 
 const toBool = ({ value }: { value: unknown }) => value === true || value === 'true' || value === '1';
 
@@ -49,6 +56,10 @@ export class CreateProductDto {
   @IsOptional() @Type(() => Number) @IsInt() categoryId?: number | null;
   /** Gallery in display order; the first one becomes the cover (products.image_url). */
   @IsOptional() @IsArray() @ArrayMaxSize(MAX_PRODUCT_IMAGES) @Matches(IMAGE_URL, IMAGE_URL_MSG) images?: string[];
+  /** Long overview shown under the gallery; blank lines separate paragraphs. */
+  @IsOptional() @IsString() @MaxLength(20000) details?: string;
+  @IsOptional() @IsArray() @ArrayMaxSize(20) @IsString({ each: true }) @MaxLength(300, { each: true }) highlights?: string[];
+  @IsOptional() @IsArray() @ArrayMaxSize(40) @ValidateNested({ each: true }) @Type(() => SpecDto) specs?: SpecDto[];
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
@@ -61,6 +72,10 @@ export class UpdateProductDto {
   @IsOptional() @Type(() => Number) @IsInt() categoryId?: number | null;
   /** Gallery in display order; the first one becomes the cover (products.image_url). */
   @IsOptional() @IsArray() @ArrayMaxSize(MAX_PRODUCT_IMAGES) @Matches(IMAGE_URL, IMAGE_URL_MSG) images?: string[];
+  /** Long overview shown under the gallery; blank lines separate paragraphs. */
+  @IsOptional() @IsString() @MaxLength(20000) details?: string;
+  @IsOptional() @IsArray() @ArrayMaxSize(20) @IsString({ each: true }) @MaxLength(300, { each: true }) highlights?: string[];
+  @IsOptional() @IsArray() @ArrayMaxSize(40) @ValidateNested({ each: true }) @Type(() => SpecDto) specs?: SpecDto[];
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 

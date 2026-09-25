@@ -6,8 +6,15 @@ import {
   AdminProductQueryDto,
   CreateProductDto,
   ProductQueryDto,
+  SpecDto,
   UpdateProductDto,
 } from './products.dto';
+
+/** Long-form fields are only needed on the product page, so lists leave them out. */
+const LIST_OMIT = { details: true, highlights: true, specs: true } as const;
+
+/** Store specs as plain JSON objects (DTO class instances are not valid Prisma JSON input). */
+const toSpecsJson = (specs: SpecDto[]) => specs.map(({ label, value }) => ({ label: label.trim(), value: value.trim() }));
 
 const ORDER_BY: Record<string, Prisma.ProductOrderByWithRelationInput> = {
   newest: { id: 'desc' },
@@ -60,7 +67,7 @@ export class ProductsService {
 
     if (query.sort === 'rating') {
       // Ratings live in another table, so sort in memory (the catalog is small).
-      const all = await this.prisma.product.findMany({ where, include });
+      const all = await this.prisma.product.findMany({ where, include, omit: LIST_OMIT });
       const ratings = await this.ratings(all.map((p) => p.id));
       const items = all
         .map((p) => ({ ...p, rating: ratings.get(p.id) ?? { avg: 0, count: 0 } }))
@@ -72,6 +79,7 @@ export class ProductsService {
       this.prisma.product.findMany({
         where,
         include,
+        omit: LIST_OMIT,
         orderBy: ORDER_BY[query.sort ?? 'newest'],
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -103,12 +111,13 @@ export class ProductsService {
     return { ...product, rating };
   }
 
-  create({ images, ...dto }: CreateProductDto) {
+  create({ images, specs, ...dto }: CreateProductDto) {
     return this.prisma.product.create({
       data: {
         ...dto,
         sku: dto.sku.trim().toUpperCase(),
         imageUrl: images?.[0] ?? null,
+        ...(specs && { specs: toSpecsJson(specs) }),
         images: images && { create: images.map((url, sortOrder) => ({ url, sortOrder })) },
       },
       include: { images: { orderBy: { sortOrder: 'asc' } } },
@@ -116,7 +125,7 @@ export class ProductsService {
   }
 
   /** When `images` is sent it replaces the whole gallery (order included) and resets the cover. */
-  update(id: number, { images, ...dto }: UpdateProductDto) {
+  update(id: number, { images, specs, ...dto }: UpdateProductDto) {
     return this.prisma.$transaction(async (tx) => {
       if (images) {
         await tx.productImage.deleteMany({ where: { productId: id } });
@@ -124,7 +133,12 @@ export class ProductsService {
       }
       return tx.product.update({
         where: { id },
-        data: { ...dto, sku: dto.sku?.trim().toUpperCase(), ...(images && { imageUrl: images[0] ?? null }) },
+        data: {
+          ...dto,
+          sku: dto.sku?.trim().toUpperCase(),
+          ...(images && { imageUrl: images[0] ?? null }),
+          ...(specs && { specs: toSpecsJson(specs) }),
+        },
         include: { images: { orderBy: { sortOrder: 'asc' } } },
       });
     });

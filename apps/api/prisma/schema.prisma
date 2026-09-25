@@ -84,6 +84,11 @@ model Product {
   sku           String    @unique
   name          String    @map("product_name")
   description   String    @default("")
+  /// Long overview; blank lines separate paragraphs.
+  details       String    @default("")
+  highlights    String[]  @default([])
+  /// Ordered spec table: [{ label, value }].
+  specs         Json      @default("[]")
   price         Decimal   @db.Decimal(10, 2)
   stockQuantity Int       @default(0) @map("stock_quantity")
   imageUrl      String?   @map("image_url")

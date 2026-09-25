@@ -4,11 +4,12 @@ import { Boxes, Images, Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-r
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { GalleryEditor } from '@/components/GalleryEditor';
 import { Modal } from '@/components/Modal';
+import { SpecsEditor } from '@/components/SpecsEditor';
 import { Badge, ErrorBox, PageTitle, ProductImage, Spinner } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { useStore } from '@/lib/store';
-import type { Category, Paged, Product } from '@/lib/types';
+import type { Category, Paged, Product, ProductSpec } from '@/lib/types';
 
 type FormState = {
   sku: string;
@@ -18,10 +19,14 @@ type FormState = {
   stockQuantity: string;
   categoryId: string;
   images: string[];
+  details: string;
+  /** One highlight per line in the textarea. */
+  highlights: string;
+  specs: ProductSpec[];
   isActive: boolean;
 };
 
-const EMPTY: FormState = { sku: '', name: '', description: '', price: '', stockQuantity: '0', categoryId: '', images: [], isActive: true };
+const EMPTY: FormState = { sku: '', name: '', description: '', price: '', stockQuantity: '0', categoryId: '', images: [], details: '', highlights: '', specs: [], isActive: true };
 
 function ProductForm({
   product,
@@ -44,6 +49,9 @@ function ProductForm({
           categoryId: product.categoryId ? String(product.categoryId) : '',
           // Older products may only have a cover and no gallery rows yet.
           images: product.images?.length ? product.images.map((i) => i.url) : product.imageUrl ? [product.imageUrl] : [],
+          details: product.details ?? '',
+          highlights: (product.highlights ?? []).join('\n'),
+          specs: product.specs ?? [],
           isActive: product.isActive,
         }
       : EMPTY,
@@ -64,6 +72,10 @@ function ProductForm({
       stockQuantity: Number(form.stockQuantity),
       categoryId: form.categoryId ? Number(form.categoryId) : null,
       images: form.images,
+      details: form.details.trim(),
+      highlights: form.highlights.split('\n').map((h) => h.trim()).filter(Boolean),
+      // Drop rows the admin left half-empty.
+      specs: form.specs.filter((sp) => sp.label.trim() && sp.value.trim()),
       isActive: form.isActive,
     };
     try {
@@ -117,8 +129,22 @@ function ProductForm({
           </div>
         </div>
         <div>
-          <label className="label" htmlFor="desc">รายละเอียด</label>
-          <textarea id="desc" className="input min-h-24" value={form.description} onChange={set('description')} />
+          <label className="label" htmlFor="desc">คำอธิบายสั้น</label>
+          <textarea id="desc" className="input min-h-20" value={form.description} onChange={set('description')} />
+          <p className="mt-1 text-xs text-muted">แสดงใต้ชื่อสินค้าในหน้าสินค้า (1–2 บรรทัด)</p>
+        </div>
+        <div>
+          <label className="label" htmlFor="details">รายละเอียดแบบยาว</label>
+          <textarea id="details" className="input min-h-48" value={form.details} onChange={set('details')} />
+          <p className="mt-1 text-xs text-muted">แสดงใต้รูปสินค้า · เว้นบรรทัดว่างเพื่อขึ้นย่อหน้าใหม่</p>
+        </div>
+        <div>
+          <label className="label" htmlFor="highlights">จุดเด่น</label>
+          <textarea id="highlights" className="input min-h-28" placeholder="หนึ่งบรรทัดต่อหนึ่งข้อ" value={form.highlights} onChange={set('highlights')} />
+        </div>
+        <div>
+          <span className="label">ข้อมูลจำเพาะ</span>
+          <SpecsEditor specs={form.specs} onChange={(specs) => setForm((f) => ({ ...f, specs }))} />
         </div>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" className="accent-accent" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
@@ -198,6 +224,14 @@ export default function AdminProductsPage() {
   useEffect(() => {
     api.get<Category[]>('/categories').then(setCategories).catch(() => {});
   }, []);
+
+  const openEdit = async (p: Product) => {
+    try {
+      setEditing(await api.get<Product>(`/admin/products/${p.id}`));
+    } catch (e) {
+      toast(errorMessage(e), 'error');
+    }
+  };
 
   const toggleActive = async (p: Product) => {
     if (p.isActive && !confirm(`ลบ "${p.name}" ออกจากหน้าร้าน? (ข้อมูลในคำสั่งซื้อเดิมจะยังอยู่)`)) return;
@@ -294,7 +328,7 @@ export default function AdminProductsPage() {
                       <button className="btn-ghost px-2 py-1" title="ปรับสต็อก" onClick={() => setStocking(p)}>
                         <Boxes size={15} />
                       </button>
-                      <button className="btn-ghost px-2 py-1" title="แก้ไข" onClick={() => setEditing(p)}>
+                      <button className="btn-ghost px-2 py-1" title="แก้ไข" onClick={() => openEdit(p)}>
                         <Pencil size={15} />
                       </button>
                       <button

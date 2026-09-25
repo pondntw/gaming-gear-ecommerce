@@ -4,6 +4,7 @@ import { BadgeCheck, CreditCard, Minus, PackageCheck, Plus, Truck } from 'lucide
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { ProductDetails } from '@/components/ProductDetails';
 import { ProductGallery } from '@/components/ProductGallery';
 import { ReviewForm } from '@/components/ReviewForm';
 import { ErrorBox, Spinner, Stars } from '@/components/ui';
@@ -83,10 +84,11 @@ export default function ProductDetailPage() {
         )}
       </nav>
 
-      <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
+      {/* Mobile order follows the DOM (gallery, buy panel, details); on lg the panel sits in column 2 across both rows. */}
+      <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-x-14">
         <ProductGallery key={product.id} product={product} />
 
-        <div className="lg:sticky lg:top-20 lg:self-start">
+        <div className="lg:sticky lg:top-20 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
           {product.stockQuantity > 0 && product.stockQuantity <= 5 && (
             <p className="text-sm font-medium text-warn">เหลือเพียง {product.stockQuantity} ชิ้น</p>
           )}
@@ -148,6 +150,10 @@ export default function ProductDetailPage() {
             ))}
           </ul>
           <p className="text-xs text-muted">SKU {product.sku}</p>
+        </div>
+
+        <div className="lg:col-start-1">
+          <ProductDetails product={product} />
         </div>
       </div>
 

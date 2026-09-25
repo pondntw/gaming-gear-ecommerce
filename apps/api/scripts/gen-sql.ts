@@ -7,6 +7,7 @@ import { join } from 'path';
 import { ADMIN, CATEGORIES, PRODUCTS } from '../prisma/seed-data';
 
 const q = (s: string) => `'${s.replace(/'/g, "''")}'`;
+const textArray = (items: string[]) => (items.length ? `ARRAY[${items.map(q).join(', ')}]` : `'{}'`) + '::text[]';
 
 const ddl = execSync('npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script', {
   cwd: join(__dirname, '..'),
@@ -21,8 +22,8 @@ const seed = [
   '',
   ...PRODUCTS.map(
     (p) =>
-      `INSERT INTO "products" ("category_id", "sku", "product_name", "description", "price", "stock_quantity", "image_url") ` +
-      `SELECT "category_id", ${q(p.sku)}, ${q(p.name)}, ${q(p.description)}, ${p.price}, ${p.stock}, ${p.images[0] ? q(p.images[0]) : 'NULL'} FROM "categories" WHERE "category_name" = ${q(p.category)} ON CONFLICT ("sku") DO NOTHING;`,
+      `INSERT INTO "products" ("category_id", "sku", "product_name", "description", "price", "stock_quantity", "image_url", "details", "highlights", "specs") ` +
+      `SELECT "category_id", ${q(p.sku)}, ${q(p.name)}, ${q(p.description)}, ${p.price}, ${p.stock}, ${p.images[0] ? q(p.images[0]) : 'NULL'}, ${q(p.details ?? '')}, ${textArray(p.highlights ?? [])}, ${q(JSON.stringify(p.specs ?? []))}::jsonb FROM "categories" WHERE "category_name" = ${q(p.category)} ON CONFLICT ("sku") DO NOTHING;`,
   ),
   '',
   ...PRODUCTS.flatMap((p) =>

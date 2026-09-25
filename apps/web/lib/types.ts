@@ -24,6 +24,11 @@ export interface ProductImage {
   sortOrder: number;
 }
 
+export interface ProductSpec {
+  label: string;
+  value: string;
+}
+
 export interface Product {
   id: number;
   categoryId: number | null;
@@ -36,6 +41,10 @@ export interface Product {
   imageUrl: string | null;
   /** Full gallery; only included on detail and admin endpoints. */
   images?: ProductImage[];
+  /** Long-form content; only included on the product detail endpoints. */
+  details?: string;
+  highlights?: string[];
+  specs?: ProductSpec[];
   isActive: boolean;
   category: Category | null;
   rating: { avg: number; count: number };
