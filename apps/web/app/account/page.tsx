@@ -115,7 +115,7 @@ function AddressSection() {
       <div className="flex items-center justify-between">
         <h2 className="font-medium">ที่อยู่จัดส่ง</h2>
         {editing !== 'new' && (
-          <button className="btn-cyan py-1.5" onClick={() => setEditing('new')}>
+          <button className="btn-secondary py-1.5" onClick={() => setEditing('new')}>
             <Plus size={16} /> เพิ่มที่อยู่
           </button>
         )}
@@ -132,7 +132,7 @@ function AddressSection() {
       {addresses.length === 0 && editing !== 'new' && <p className="text-sm text-muted">ยังไม่มีที่อยู่ที่บันทึกไว้</p>}
       {addresses.map((a) =>
         editing === a.id ? (
-          <div key={a.id} className="rounded-lg border border-neon-cyan/50 p-4">
+          <div key={a.id} className="rounded-lg border border-accent/50 p-4">
             <AddressForm
               initial={a}
               onCancel={() => setEditing(null)}
@@ -144,7 +144,7 @@ function AddressSection() {
             <div className="min-w-0 flex-1">
               <p className="font-medium">
                 {a.recipientName} · {a.phone}
-                {a.isDefault && <span className="ml-2 text-xs text-neon-cyan">ที่อยู่หลัก</span>}
+                {a.isDefault && <span className="ml-2 text-xs text-accent">ที่อยู่หลัก</span>}
               </p>
               <p className="text-muted">{a.addressLine}</p>
             </div>
@@ -179,7 +179,7 @@ function AddressSection() {
 export default function AccountPage() {
   return (
     <RequireAuth>
-      <PageTitle sub="จัดการข้อมูลส่วนตัว รหัสผ่าน และที่อยู่จัดส่ง">MY ACCOUNT</PageTitle>
+      <PageTitle sub="จัดการข้อมูลส่วนตัว รหัสผ่าน และที่อยู่จัดส่ง">บัญชีของคุณ</PageTitle>
       <div className="grid gap-6 lg:grid-cols-2">
         <ProfileSection />
         <PasswordSection />

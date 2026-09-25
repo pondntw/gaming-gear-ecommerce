@@ -35,7 +35,7 @@ function LoginForm() {
   };
 
   return (
-    <AuthCard title="LOGIN" sub="เข้าสู่ระบบเพื่อเลือกซื้อสินค้า">
+    <AuthCard title="เข้าสู่ระบบ" sub="ใช้บัญชี Gaming Gear ของคุณ">
       <form onSubmit={submit} className="space-y-4">
         {error && <ErrorBox message={error} />}
         <div>
@@ -45,14 +45,14 @@ function LoginForm() {
         <div>
           <div className="flex justify-between">
             <label className="label" htmlFor="password">รหัสผ่าน</label>
-            <Link href="/forgot-password" className="text-sm text-neon-cyan hover:underline">ลืมรหัสผ่าน?</Link>
+            <Link href="/forgot-password" className="text-sm text-accent hover:underline">ลืมรหัสผ่าน?</Link>
           </div>
           <input id="password" type="password" className="input" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <button className="btn-primary w-full py-2.5" disabled={busy}>{busy ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}</button>
         <p className="text-center text-sm text-muted">
           ยังไม่มีบัญชี?{' '}
-          <Link href={`/register${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="text-neon-cyan hover:underline">สมัครสมาชิก</Link>
+          <Link href={`/register${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="text-accent hover:underline">สมัครสมาชิก</Link>
         </p>
       </form>
     </AuthCard>

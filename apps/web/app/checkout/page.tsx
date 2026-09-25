@@ -1,15 +1,47 @@
 'use client';
 
-import { MapPin, Plus } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { AddressForm } from '@/components/AddressForm';
-import { ErrorBox, PageTitle, RequireAuth, Spinner } from '@/components/ui';
+import { ErrorBox, ProductImage, RequireAuth, Spinner } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { useStore } from '@/lib/store';
 import type { Address, Cart, Order, OrderOptions } from '@/lib/types';
+
+/** Large selectable tile with a blue ring when chosen, like Apple's configurator options. */
+function Choice({ selected, onSelect, children }: { selected: boolean; onSelect: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={`relative w-full rounded-2xl border bg-white p-5 text-left transition ${
+        selected ? 'border-accent ring-1 ring-accent' : 'border-line hover:border-muted'
+      }`}
+    >
+      {selected && (
+        <span className="absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
+          <Check size={12} strokeWidth={3} />
+        </span>
+      )}
+      {children}
+    </button>
+  );
+}
+
+function Step({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-4">
+      <h2 className="text-2xl font-semibold tracking-tight">
+        <span className="text-muted">{n}.</span> {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
 
 function CheckoutView() {
   const router = useRouter();
@@ -39,8 +71,9 @@ function CheckoutView() {
   if (error) return <ErrorBox message={error} />;
   if (!cart || !options) return <Spinner />;
 
-  const method = options.shippingMethods[shippingMethod];
-  const fee = shippingMethod === 'standard' && cart.subtotal >= options.freeShippingMin ? 0 : method.fee;
+  const feeFor = (key: string) =>
+    key === 'standard' && cart.subtotal >= options.freeShippingMin ? 0 : options.shippingMethods[key].fee;
+  const fee = feeFor(shippingMethod);
 
   const placeOrder = async () => {
     if (!addressId) return toast('กรุณาเลือกที่อยู่จัดส่ง', 'error');
@@ -57,33 +90,27 @@ function CheckoutView() {
   };
 
   return (
-    <>
-      <PageTitle sub="ตรวจสอบที่อยู่ วิธีจัดส่ง และยอดชำระ">CHECKOUT</PageTitle>
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-6">
-          <section className="card p-5">
-            <h2 className="mb-4 flex items-center gap-2 font-medium">
-              <MapPin size={18} className="text-neon-cyan" /> 1. ที่อยู่จัดส่ง
-            </h2>
-            <div className="space-y-2">
+    <div className="space-y-10">
+      <div>
+        <Link href="/cart" className="link text-sm">‹ กลับไปที่ถุง</Link>
+        <h1 className="headline mt-3">ชำระเงิน</h1>
+      </div>
+
+      <div className="grid gap-12 lg:grid-cols-[1fr_380px]">
+        <div className="space-y-12">
+          <Step n={1} title="จัดส่งไปที่ไหน">
+            <div className="grid gap-3 sm:grid-cols-2">
               {addresses.map((a) => (
-                <label
-                  key={a.id}
-                  className={`flex cursor-pointer gap-3 rounded-lg border p-3 ${
-                    addressId === a.id ? 'border-neon-cyan bg-neon-cyan/5' : 'border-line hover:border-slate-500'
-                  }`}
-                >
-                  <input type="radio" name="address" className="mt-1 accent-[#22e3ff]" checked={addressId === a.id} onChange={() => setAddressId(a.id)} />
-                  <span className="text-sm">
-                    <span className="font-medium">{a.recipientName}</span> · {a.phone}
-                    {a.isDefault && <span className="ml-2 text-xs text-neon-cyan">ที่อยู่หลัก</span>}
-                    <span className="block text-muted">{a.addressLine}</span>
-                  </span>
-                </label>
+                <Choice key={a.id} selected={addressId === a.id} onSelect={() => setAddressId(a.id)}>
+                  <p className="pr-8 font-medium">{a.recipientName}</p>
+                  <p className="text-sm text-muted">{a.phone}</p>
+                  <p className="mt-2 text-sm">{a.addressLine}</p>
+                  {a.isDefault && <p className="mt-2 text-xs text-muted">ที่อยู่หลัก</p>}
+                </Choice>
               ))}
             </div>
             {adding ? (
-              <div className="mt-4 rounded-lg border border-line p-4">
+              <div className="card p-6">
                 <AddressForm
                   initial={{ isDefault: addresses.length === 0 }}
                   submitLabel="บันทึกและใช้ที่อยู่นี้"
@@ -91,8 +118,7 @@ function CheckoutView() {
                   onSubmit={async (input) => {
                     try {
                       const a = await api.post<Address>('/me/addresses', input);
-                      const list = await api.get<Address[]>('/me/addresses');
-                      setAddresses(list);
+                      setAddresses(await api.get<Address[]>('/me/addresses'));
                       setAddressId(a.id);
                       setAdding(false);
                     } catch (e) {
@@ -102,69 +128,61 @@ function CheckoutView() {
                 />
               </div>
             ) : (
-              <button className="btn-ghost mt-3" onClick={() => setAdding(true)}>
-                <Plus size={16} /> เพิ่มที่อยู่ใหม่
+              <button className="link flex items-center gap-1 text-sm" onClick={() => setAdding(true)}>
+                <Plus size={15} /> เพิ่มที่อยู่ใหม่
               </button>
             )}
-          </section>
+          </Step>
 
-          <section className="card p-5">
-            <h2 className="mb-4 font-medium">2. วิธีจัดส่ง</h2>
-            <div className="grid gap-2 sm:grid-cols-2">
+          <Step n={2} title="จัดส่งอย่างไร">
+            <div className="grid gap-3 sm:grid-cols-2">
               {Object.entries(options.shippingMethods).map(([key, m]) => {
-                const f = key === 'standard' && cart.subtotal >= options.freeShippingMin ? 0 : m.fee;
+                const f = feeFor(key);
                 return (
-                  <label
-                    key={key}
-                    className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3 ${
-                      shippingMethod === key ? 'border-neon-cyan bg-neon-cyan/5' : 'border-line hover:border-slate-500'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 text-sm">
-                      <input type="radio" name="ship" className="accent-[#22e3ff]" checked={shippingMethod === key} onChange={() => setShippingMethod(key)} />
-                      {m.label}
-                    </span>
-                    <span className="text-sm font-medium">{f === 0 ? 'ฟรี' : formatPrice(f)}</span>
-                  </label>
+                  <Choice key={key} selected={shippingMethod === key} onSelect={() => setShippingMethod(key)}>
+                    <p className="pr-8 font-medium">{m.label}</p>
+                    <p className="mt-1 text-sm text-muted">{f === 0 ? 'ฟรี' : formatPrice(f)}</p>
+                  </Choice>
                 );
               })}
             </div>
             {cart.subtotal < options.freeShippingMin && (
-              <p className="mt-3 text-xs text-muted">
-                ส่งแบบธรรมดาฟรีเมื่อซื้อครบ {formatPrice(options.freeShippingMin)}
-              </p>
+              <p className="text-sm text-muted">ส่งแบบธรรมดาฟรีเมื่อซื้อครบ {formatPrice(options.freeShippingMin)}</p>
             )}
-          </section>
+          </Step>
         </div>
 
-        <aside className="card h-fit space-y-4 p-5">
-          <h2 className="font-medium">3. สรุปคำสั่งซื้อ</h2>
-          <ul className="space-y-2 text-sm">
+        <aside className="card h-fit space-y-5 p-6 lg:sticky lg:top-20">
+          <h2 className="text-xl font-semibold tracking-tight">สรุปคำสั่งซื้อ</h2>
+          <ul className="space-y-4">
             {cart.items.map((i) => (
-              <li key={i.id} className="flex justify-between gap-3">
-                <span className="text-slate-300">
-                  {i.product.name} <span className="text-muted">×{i.quantity}</span>
-                </span>
+              <li key={i.id} className="flex items-center gap-3 text-sm">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-surface">
+                  <ProductImage src={i.product.imageUrl} category={i.product.category?.name} alt="" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{i.product.name}</p>
+                  <p className="text-muted">จำนวน {i.quantity}</p>
+                </div>
                 <span className="shrink-0">{formatPrice(i.product.price * i.quantity)}</span>
               </li>
             ))}
           </ul>
-          <div className="space-y-1 border-t border-line pt-3 text-sm">
-            <div className="flex justify-between"><span className="text-muted">ยอดรวมสินค้า</span><span>{formatPrice(cart.subtotal)}</span></div>
-            <div className="flex justify-between"><span className="text-muted">ค่าจัดส่ง</span><span>{fee === 0 ? 'ฟรี' : formatPrice(fee)}</span></div>
+          <dl className="space-y-2 border-t border-line pt-4 text-sm">
+            <div className="flex justify-between"><dt className="text-muted">ยอดรวมย่อย</dt><dd>{formatPrice(cart.subtotal)}</dd></div>
+            <div className="flex justify-between"><dt className="text-muted">ค่าจัดส่ง</dt><dd>{fee === 0 ? 'ฟรี' : formatPrice(fee)}</dd></div>
+          </dl>
+          <div className="flex justify-between border-t border-line pt-4 text-xl font-semibold tracking-tight">
+            <span>ยอดรวม</span>
+            <span>{formatPrice(cart.subtotal + fee)}</span>
           </div>
-          <div className="flex justify-between border-t border-line pt-3">
-            <span>ยอดชำระทั้งหมด</span>
-            <span className="text-xl font-bold text-neon-pink">{formatPrice(cart.subtotal + fee)}</span>
-          </div>
-          <button className="btn-primary w-full py-3" disabled={placing || !addressId} onClick={placeOrder}>
-            {placing ? 'กำลังสร้างคำสั่งซื้อ...' : 'ยืนยันคำสั่งซื้อ'}
+          <button className="btn-primary w-full py-3 text-[17px]" disabled={placing || !addressId} onClick={placeOrder}>
+            {placing ? 'กำลังสร้างคำสั่งซื้อ...' : 'สั่งซื้อ'}
           </button>
-          <p className="text-xs text-muted">หลังยืนยัน คุณจะชำระเงินและแนบสลิปได้ที่หน้าคำสั่งซื้อ</p>
-          <Link href="/cart" className="block text-center text-sm text-neon-cyan hover:underline">← กลับไปแก้ไขตะกร้า</Link>
+          <p className="text-center text-xs text-muted">หลังสั่งซื้อ คุณจะชำระเงินและแนบสลิปได้ที่หน้าคำสั่งซื้อ</p>
         </aside>
       </div>
-    </>
+    </div>
   );
 }
 

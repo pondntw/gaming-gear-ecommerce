@@ -52,28 +52,28 @@ function PaymentForm({ order, onDone }: { order: Order; onDone: (o: Order) => vo
   };
 
   return (
-    <form onSubmit={submit} className="card space-y-4 border-neon-pink/50 p-5">
+    <form onSubmit={submit} className="card space-y-4 border-accent/50 p-5">
       <h2 className="font-medium">ชำระเงิน {formatPrice(order.total)}</h2>
       <div className="grid gap-2 sm:grid-cols-2">
         {Object.entries(options?.paymentMethods ?? { bank_transfer: 'โอนผ่านบัญชีธนาคาร' }).map(([key, label]) => (
           <label
             key={key}
             className={`flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm ${
-              method === key ? 'border-neon-cyan bg-neon-cyan/5' : 'border-line'
+              method === key ? 'border-accent bg-accent/5' : 'border-line'
             }`}
           >
-            <input type="radio" name="method" className="accent-[#22e3ff]" checked={method === key} onChange={() => setMethod(key)} />
+            <input type="radio" name="method" className="accent-accent" checked={method === key} onChange={() => setMethod(key)} />
             {label}
           </label>
         ))}
       </div>
       <div className="rounded-lg bg-surface-2 p-4 text-sm">
         {method === 'promptpay' ? (
-          <p>พร้อมเพย์: <span className="font-mono text-neon-cyan">{BANK_INFO.promptpay}</span> ({BANK_INFO.name})</p>
+          <p>พร้อมเพย์: <span className="font-mono text-accent">{BANK_INFO.promptpay}</span> ({BANK_INFO.name})</p>
         ) : (
           <>
             <p>{BANK_INFO.bank}</p>
-            <p>เลขบัญชี: <span className="font-mono text-neon-cyan">{BANK_INFO.number}</span></p>
+            <p>เลขบัญชี: <span className="font-mono text-accent">{BANK_INFO.number}</span></p>
             <p>ชื่อบัญชี: {BANK_INFO.name}</p>
           </>
         )}
@@ -82,7 +82,7 @@ function PaymentForm({ order, onDone }: { order: Order; onDone: (o: Order) => vo
         <label className="label" htmlFor="slip">แนบสลิปการโอนเงิน (JPG, PNG, WEBP ไม่เกิน 5MB)</label>
         <label
           htmlFor="slip"
-          className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-line p-6 text-sm text-muted hover:border-neon-cyan"
+          className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-line p-6 text-sm text-muted hover:border-accent"
         >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -131,8 +131,8 @@ function DeliveredReviews({ order }: { order: Order }) {
         {order.items.map((i) => (
           <div key={i.id} className="space-y-3">
             <div className="flex items-center justify-between gap-3 text-sm">
-              <Link href={`/products/${i.productId}`} className="hover:text-neon-cyan">{i.product.name}</Link>
-              <button className="btn-cyan py-1" onClick={() => setOpenId(openId === i.productId ? null : i.productId)}>
+              <Link href={`/products/${i.productId}`} className="hover:text-accent">{i.product.name}</Link>
+              <button className="btn-secondary py-1" onClick={() => setOpenId(openId === i.productId ? null : i.productId)}>
                 {mine[i.productId] ? 'แก้ไขรีวิว' : 'เขียนรีวิว'}
               </button>
             </div>
@@ -187,10 +187,10 @@ function OrderDetail() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <Link href="/orders" className="text-sm text-muted hover:text-white">← คำสั่งซื้อทั้งหมด</Link>
+        <Link href="/orders" className="text-sm text-muted hover:text-ink">← คำสั่งซื้อทั้งหมด</Link>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="neon-title text-2xl">ORDER #{order.id}</h1>
+        <h1 className="section-title">คำสั่งซื้อ #{order.id}</h1>
         <StatusBadge status={order.status} />
         <span className="text-sm text-muted">{formatDate(order.orderDate)}</span>
         {canCancel && (
@@ -213,7 +213,7 @@ function OrderDetail() {
             </>
           )}
           {order.status === 'payment_review' && (
-            <div className="rounded-lg border border-violet-400/50 bg-violet-400/10 p-4 text-sm text-violet-100">
+            <div className="rounded-lg border border-transparent bg-[#f3eefe] p-4 text-sm text-[#6e3ad6]">
               ได้รับหลักฐานการชำระเงินแล้ว กำลังรอเจ้าหน้าที่ตรวจสอบ
             </div>
           )}

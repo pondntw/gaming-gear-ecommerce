@@ -1,20 +1,23 @@
 'use client';
 
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, Suspense, useEffect, useState } from 'react';
 import { ProductCard } from '@/components/ProductCard';
-import { Empty, ErrorBox, PageTitle, Spinner } from '@/components/ui';
+import { Empty, ErrorBox, Spinner } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import type { Category, Paged, Product } from '@/lib/types';
 
 const SORTS = [
   { value: 'newest', label: 'ใหม่ล่าสุด' },
-  { value: 'price_asc', label: 'ราคา: ต่ำ → สูง' },
-  { value: 'price_desc', label: 'ราคา: สูง → ต่ำ' },
+  { value: 'price_asc', label: 'ราคา: ต่ำไปสูง' },
+  { value: 'price_desc', label: 'ราคา: สูงไปต่ำ' },
   { value: 'rating', label: 'คะแนนรีวิว' },
-  { value: 'name', label: 'ชื่อ A-Z' },
+  { value: 'name', label: 'ชื่อ A–Z' },
 ];
+
+const pill = (active: boolean) =>
+  `shrink-0 rounded-full px-4 py-1.5 text-sm transition ${active ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-surface-2'}`;
 
 function ProductsView() {
   const params = useSearchParams();
@@ -63,138 +66,121 @@ function ProductsView() {
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   const activeCategory = categories.find((c) => String(c.id) === categoryId);
+  const hasFilters = !!(q || minPrice || maxPrice || inStock);
 
   return (
-    <div>
-      <PageTitle sub={activeCategory ? `หมวดหมู่: ${activeCategory.name}` : 'อุปกรณ์เกมมิ่งทั้งหมด'}>PRODUCTS</PageTitle>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="headline">
+          {activeCategory ? activeCategory.name : 'ร้านค้า'}
+          <span className="text-muted">{q ? ` · “${q}”` : activeCategory ? '' : ' อุปกรณ์เกมมิ่งทั้งหมด'}</span>
+        </h1>
+        <form
+          className="relative w-full sm:w-72"
+          onSubmit={(e: FormEvent) => {
+            e.preventDefault();
+            update({ q: search.trim() || undefined });
+          }}
+        >
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" size={16} />
+          <input className="input rounded-full pl-10" placeholder="ค้นหาสินค้า" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </form>
+      </div>
 
-      <form
-        className="mb-6 flex gap-2"
-        onSubmit={(e: FormEvent) => {
-          e.preventDefault();
-          update({ q: search.trim() || undefined });
-        }}
-      >
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
-          <input
-            className="input pl-10"
-            placeholder="ค้นหาสินค้า เช่น Logitech, คีย์บอร์ด, SKU..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="scroller items-center pb-0">
+        <button className={pill(!categoryId)} onClick={() => update({ categoryId: undefined })}>ทั้งหมด</button>
+        {categories.map((c) => (
+          <button key={c.id} className={pill(String(c.id) === categoryId)} onClick={() => update({ categoryId: String(c.id) })}>
+            {c.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4 text-sm">
+        <span className="text-muted">{data ? `${data.total} รายการ` : ' '}</span>
+        <div className="flex flex-wrap items-center gap-3">
+          {hasFilters && (
+            <button className="link flex items-center gap-1" onClick={() => router.push(categoryId ? `${pathname}?categoryId=${categoryId}` : pathname)}>
+              <X size={14} /> ล้างตัวกรอง
+            </button>
+          )}
+          <button className="flex items-center gap-1.5 hover:text-accent" onClick={() => setShowFilters(!showFilters)}>
+            <SlidersHorizontal size={15} /> ตัวกรอง
+          </button>
+          <select
+            aria-label="เรียงตาม"
+            className="rounded-full bg-white px-3 py-1.5 outline-none"
+            value={sort}
+            onChange={(e) => update({ sort: e.target.value })}
+          >
+            {SORTS.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
         </div>
-        <button className="btn-primary">ค้นหา</button>
-        <button type="button" className="btn-ghost lg:hidden" onClick={() => setShowFilters(!showFilters)} aria-label="ตัวกรอง">
-          <SlidersHorizontal size={18} />
-        </button>
-      </form>
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-        <aside className={`${showFilters ? 'block' : 'hidden'} space-y-6 lg:block`}>
-          <div className="card p-4">
-            <h3 className="mb-3 font-medium">หมวดหมู่</h3>
-            <div className="flex flex-col gap-1 text-sm">
-              <button
-                className={`rounded-md px-2 py-1.5 text-left ${!categoryId ? 'bg-neon-cyan/10 text-neon-cyan' : 'hover:bg-white/5'}`}
-                onClick={() => update({ categoryId: undefined })}
-              >
-                ทั้งหมด
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.id}
-                  className={`flex justify-between rounded-md px-2 py-1.5 text-left ${
-                    String(c.id) === categoryId ? 'bg-neon-cyan/10 text-neon-cyan' : 'hover:bg-white/5'
-                  }`}
-                  onClick={() => update({ categoryId: String(c.id) })}
-                >
-                  {c.name} <span className="text-muted">{c.productCount}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
+      {showFilters && (
+        <div className="card flex flex-wrap items-end gap-6 p-6">
           <form
-            className="card space-y-3 p-4"
+            className="flex flex-wrap items-end gap-3"
             onSubmit={(e) => {
               e.preventDefault();
               update({ minPrice: min || undefined, maxPrice: max || undefined });
             }}
           >
-            <h3 className="font-medium">ช่วงราคา (บาท)</h3>
-            <div className="flex items-center gap-2">
-              <input className="input" type="number" min={0} placeholder="ต่ำสุด" value={min} onChange={(e) => setMin(e.target.value)} />
-              <span className="text-muted">-</span>
-              <input className="input" type="number" min={0} placeholder="สูงสุด" value={max} onChange={(e) => setMax(e.target.value)} />
-            </div>
-            <button className="btn-cyan w-full">ใช้ช่วงราคา</button>
-          </form>
-
-          <div className="card space-y-3 p-4">
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="accent-[#22e3ff]"
-                checked={inStock}
-                onChange={(e) => update({ inStock: e.target.checked ? 'true' : undefined })}
-              />
-              แสดงเฉพาะสินค้าที่มีในสต็อก
-            </label>
             <div>
-              <label className="label" htmlFor="sort">
-                เรียงตาม
-              </label>
-              <select id="sort" className="input" value={sort} onChange={(e) => update({ sort: e.target.value })}>
-                {SORTS.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
+              <label className="label" htmlFor="min">ราคาต่ำสุด</label>
+              <input id="min" className="input w-36" type="number" min={0} placeholder="฿0" value={min} onChange={(e) => setMin(e.target.value)} />
             </div>
-            {(q || categoryId || minPrice || maxPrice || inStock) && (
-              <button className="btn-ghost w-full" onClick={() => router.push(pathname)}>
-                ล้างตัวกรองทั้งหมด
-              </button>
-            )}
-          </div>
-        </aside>
+            <div>
+              <label className="label" htmlFor="max">ราคาสูงสุด</label>
+              <input id="max" className="input w-36" type="number" min={0} placeholder="ไม่จำกัด" value={max} onChange={(e) => setMax(e.target.value)} />
+            </div>
+            <button className="btn-secondary">ใช้ช่วงราคา</button>
+          </form>
+          <label className="flex cursor-pointer items-center gap-2 pb-2.5 text-sm">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-accent"
+              checked={inStock}
+              onChange={(e) => update({ inStock: e.target.checked ? 'true' : undefined })}
+            />
+            เฉพาะสินค้าที่พร้อมส่ง
+          </label>
+        </div>
+      )}
 
-        <section>
-          {error ? (
-            <ErrorBox message={error} />
-          ) : !data ? (
-            <Spinner />
-          ) : data.items.length === 0 ? (
-            <Empty title="ไม่พบสินค้าที่ตรงกับเงื่อนไข">
-              <p className="text-sm text-muted">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
-            </Empty>
-          ) : (
-            <>
-              <p className="mb-3 text-sm text-muted">พบ {data.total} รายการ</p>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                {data.items.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-              {totalPages > 1 && (
-                <div className="mt-8 flex justify-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                    <button
-                      key={n}
-                      className={n === page ? 'btn-primary' : 'btn-ghost'}
-                      onClick={() => update({ page: String(n) })}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
+      {error ? (
+        <ErrorBox message={error} />
+      ) : !data ? (
+        <Spinner />
+      ) : data.items.length === 0 ? (
+        <Empty title="ไม่พบสินค้าที่ตรงกับเงื่อนไข">
+          <p className="text-muted">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
+        </Empty>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {data.items.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  className={`h-9 w-9 rounded-full text-sm ${n === page ? 'bg-ink text-white' : 'bg-white hover:bg-surface-2'}`}
+                  onClick={() => update({ page: String(n) })}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
           )}
-        </section>
-      </div>
+        </>
+      )}
     </div>
   );
 }

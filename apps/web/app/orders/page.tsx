@@ -21,7 +21,7 @@ function OrdersView() {
 
   return (
     <>
-      <PageTitle sub="ประวัติและสถานะคำสั่งซื้อของคุณ">MY ORDERS</PageTitle>
+      <PageTitle sub="ประวัติและสถานะคำสั่งซื้อของคุณ">คำสั่งซื้อของคุณ</PageTitle>
       {orders.length === 0 ? (
         <Empty icon={Package} title="ยังไม่มีคำสั่งซื้อ">
           <Link href="/products" className="btn-primary">เริ่มช้อปเลย</Link>
@@ -29,14 +29,14 @@ function OrdersView() {
       ) : (
         <div className="space-y-3">
           {orders.map((o) => (
-            <Link key={o.id} href={`/orders/${o.id}`} className="card-glow flex flex-wrap items-center gap-x-6 gap-y-2 p-4">
-              <span className="font-display text-neon-cyan">#{o.id}</span>
+            <Link key={o.id} href={`/orders/${o.id}`} className="card-hover flex flex-wrap items-center gap-x-6 gap-y-2 p-4">
+              <span className=" text-accent">#{o.id}</span>
               <span className="text-sm text-muted">{formatDate(o.orderDate)}</span>
               <span className="min-w-0 flex-1 truncate text-sm">
                 {o.items.map((i) => i.product.name).join(', ')}
               </span>
               <StatusBadge status={o.status} />
-              <span className="font-semibold text-neon-pink">{formatPrice(o.total)}</span>
+              <span className="font-semibold text-ink">{formatPrice(o.total)}</span>
             </Link>
           ))}
         </div>

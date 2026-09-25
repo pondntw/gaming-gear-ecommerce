@@ -40,7 +40,7 @@ function RegisterForm() {
   };
 
   return (
-    <AuthCard title="REGISTER" sub="สร้างบัญชีใหม่เพื่อเริ่มช้อป">
+    <AuthCard title="สร้างบัญชี" sub="บัญชีเดียว ใช้ได้ทั้งร้าน">
       <form onSubmit={submit} className="space-y-4">
         {error && <ErrorBox message={error} />}
         <div>
@@ -67,7 +67,7 @@ function RegisterForm() {
         </div>
         <button className="btn-primary w-full py-2.5" disabled={busy}>{busy ? 'กำลังสมัคร...' : 'สมัครสมาชิก'}</button>
         <p className="text-center text-sm text-muted">
-          มีบัญชีอยู่แล้ว? <Link href="/login" className="text-neon-cyan hover:underline">เข้าสู่ระบบ</Link>
+          มีบัญชีอยู่แล้ว? <Link href="/login" className="text-accent hover:underline">เข้าสู่ระบบ</Link>
         </p>
       </form>
     </AuthCard>
