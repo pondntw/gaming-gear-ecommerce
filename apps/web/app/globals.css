@@ -1,0 +1,78 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: var(--font-orbitron), var(--font-kanit), sans-serif;
+  --font-sans: var(--font-kanit), system-ui, sans-serif;
+  --color-bg: #05060d;
+  --color-surface: #0c0f1d;
+  --color-surface-2: #131833;
+  --color-line: #232a4d;
+  --color-neon-pink: #ff2bd6;
+  --color-neon-cyan: #22e3ff;
+  --color-neon-violet: #8b5cf6;
+  --color-muted: #94a3c4;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 100% 0%, rgb(34 60 160 / 0.35), transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, rgb(160 30 110 / 0.3), transparent 60%),
+    var(--color-bg);
+  background-attachment: fixed;
+  color: #e7ecff;
+  min-height: 100vh;
+}
+
+@utility neon-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow:
+    -2px 0 0 var(--color-neon-pink),
+    2px 0 0 var(--color-neon-cyan),
+    0 0 24px rgb(255 43 214 / 0.35);
+}
+@utility card {
+  @apply rounded-2xl border border-line bg-surface/80 backdrop-blur;
+}
+@utility card-glow {
+  @apply card transition duration-200 hover:-translate-y-0.5 hover:border-neon-cyan/70 hover:shadow-[0_0_24px_-4px_rgb(34_227_255/0.45)];
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-gradient-to-r from-neon-pink to-neon-violet text-white shadow-[0_0_18px_-4px_rgb(255_43_214/0.7)] hover:brightness-110;
+}
+@utility btn-cyan {
+  @apply btn border border-neon-cyan/70 text-neon-cyan hover:bg-neon-cyan/10;
+}
+@utility btn-ghost {
+  @apply btn border border-line text-slate-200 hover:border-slate-400 hover:bg-white/5;
+}
+@utility btn-danger {
+  @apply btn border border-red-500/60 text-red-300 hover:bg-red-500/10;
+}
+@utility input {
+  @apply w-full rounded-lg border border-line bg-surface-2/70 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/25;
+}
+@utility label {
+  @apply mb-1 block text-sm text-muted;
+}
+@utility badge {
+  @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap;
+}
+@utility table-base {
+  @apply w-full text-left text-sm;
+  & th {
+    @apply border-b border-line px-3 py-2 font-medium text-muted;
+  }
+  & td {
+    @apply border-b border-line/60 px-3 py-2 align-middle;
+  }
+}
