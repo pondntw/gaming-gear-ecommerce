@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { ReviewForm } from '@/components/ReviewForm';
-import { ErrorBox, ProductImage, Spinner, Stars } from '@/components/ui';
+import { ProductGallery } from '@/components/ProductGallery';
+import { ErrorBox, Spinner, Stars } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { formatDate, formatPrice } from '@/lib/format';
 import { useStore } from '@/lib/store';
@@ -69,9 +70,7 @@ export default function ProductDetailPage() {
       </nav>
 
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="card aspect-square overflow-hidden">
-          <ProductImage src={product.imageUrl} category={product.category?.name} alt={product.name} />
-        </div>
+        <ProductGallery key={product.id} product={product} />
 
         <div className="flex flex-col gap-4">
           <span className="text-sm uppercase tracking-widest text-neon-cyan">{product.category?.name}</span>

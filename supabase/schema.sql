@@ -72,6 +72,16 @@ CREATE TABLE "products" (
 );
 
 -- CreateTable
+CREATE TABLE "product_images" (
+    "image_id" SERIAL NOT NULL,
+    "product_id" INTEGER NOT NULL,
+    "image_url" TEXT NOT NULL,
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "product_images_pkey" PRIMARY KEY ("image_id")
+);
+
+-- CreateTable
 CREATE TABLE "carts" (
     "cart_id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
@@ -152,6 +162,9 @@ CREATE UNIQUE INDEX "categories_category_name_key" ON "categories"("category_nam
 CREATE UNIQUE INDEX "products_sku_key" ON "products"("sku");
 
 -- CreateIndex
+CREATE INDEX "product_images_product_id_sort_order_idx" ON "product_images"("product_id", "sort_order");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "carts_user_id_key" ON "carts"("user_id");
 
 -- CreateIndex
@@ -168,6 +181,9 @@ ALTER TABLE "password_reset_tokens" ADD CONSTRAINT "password_reset_tokens_user_i
 
 -- AddForeignKey
 ALTER TABLE "products" ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("category_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "product_images" ADD CONSTRAINT "product_images_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "carts" ADD CONSTRAINT "carts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -198,7 +214,7 @@ ALTER TABLE "reviews" ADD CONSTRAINT "reviews_product_id_fkey" FOREIGN KEY ("pro
 
 
 -- ===== Seed data =====
-INSERT INTO "users" ("full_name", "email", "password_hash", "phone", "role") VALUES ('Admin', 'admin@gaminggear.local', '$2b$10$s94JS6In8nQJ00Rxge/gFuZcoe1sDqf65MhDDI1KI2f0MFgpliaDG', '0800000000', 'admin') ON CONFLICT ("email") DO NOTHING;
+INSERT INTO "users" ("full_name", "email", "password_hash", "phone", "role") VALUES ('Admin', 'admin@gaminggear.local', '$2b$10$bw.f6ucz4TSLd/l2c7wY/ONwPhNDFOWpsI0H.fz6KwhUArRXJW1n.', '0800000000', 'admin') ON CONFLICT ("email") DO NOTHING;
 
 INSERT INTO "categories" ("category_name") VALUES ('Mouse') ON CONFLICT DO NOTHING;
 INSERT INTO "categories" ("category_name") VALUES ('Keyboard') ON CONFLICT DO NOTHING;
@@ -228,12 +244,93 @@ INSERT INTO "products" ("category_id", "sku", "product_name", "description", "pr
 INSERT INTO "products" ("category_id", "sku", "product_name", "description", "price", "stock_quantity", "image_url") SELECT "category_id", 'CT-003', '8BitDo Ultimate 2', 'จอยไร้สายก้าน Hall Effect พร้อมแท่นชาร์จ รองรับ PC และ Switch', 2290, 20, '/products/ct-003.jpg' FROM "categories" WHERE "category_name" = 'Controller' ON CONFLICT ("sku") DO NOTHING;
 INSERT INTO "products" ("category_id", "sku", "product_name", "description", "price", "stock_quantity", "image_url") SELECT "category_id", 'CT-004', 'Razer Wolverine V3 Pro', 'จอยสำหรับ Xbox/PC ปุ่ม Mecha-Tactile และ Trigger Stop', 6990, 3, '/products/ct-004.jpg' FROM "categories" WHERE "category_name" = 'Controller' ON CONFLICT ("sku") DO NOTHING;
 
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-001.jpg', 0 FROM "products" WHERE "sku" = 'MS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-001-2.jpg', 1 FROM "products" WHERE "sku" = 'MS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-001-3.jpg', 2 FROM "products" WHERE "sku" = 'MS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-001-4.jpg', 3 FROM "products" WHERE "sku" = 'MS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-002.jpg', 0 FROM "products" WHERE "sku" = 'MS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-002-2.jpg', 1 FROM "products" WHERE "sku" = 'MS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-002-3.jpg', 2 FROM "products" WHERE "sku" = 'MS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-002-4.jpg', 3 FROM "products" WHERE "sku" = 'MS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-003.jpg', 0 FROM "products" WHERE "sku" = 'MS-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-003-2.jpg', 1 FROM "products" WHERE "sku" = 'MS-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-003-3.jpg', 2 FROM "products" WHERE "sku" = 'MS-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-003-4.jpg', 3 FROM "products" WHERE "sku" = 'MS-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-004.jpg', 0 FROM "products" WHERE "sku" = 'MS-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-004-2.jpg', 1 FROM "products" WHERE "sku" = 'MS-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-004-3.jpg', 2 FROM "products" WHERE "sku" = 'MS-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ms-004-4.jpg', 3 FROM "products" WHERE "sku" = 'MS-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-001.jpg', 0 FROM "products" WHERE "sku" = 'KB-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-001-2.jpg', 1 FROM "products" WHERE "sku" = 'KB-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-001-3.jpg', 2 FROM "products" WHERE "sku" = 'KB-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-001-4.jpg', 3 FROM "products" WHERE "sku" = 'KB-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-002.jpg', 0 FROM "products" WHERE "sku" = 'KB-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-002-2.jpg', 1 FROM "products" WHERE "sku" = 'KB-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-002-3.jpg', 2 FROM "products" WHERE "sku" = 'KB-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-002-4.jpg', 3 FROM "products" WHERE "sku" = 'KB-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-003.jpg', 0 FROM "products" WHERE "sku" = 'KB-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-003-2.jpg', 1 FROM "products" WHERE "sku" = 'KB-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-003-3.jpg', 2 FROM "products" WHERE "sku" = 'KB-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-003-4.jpg', 3 FROM "products" WHERE "sku" = 'KB-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-004.jpg', 0 FROM "products" WHERE "sku" = 'KB-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-004-2.jpg', 1 FROM "products" WHERE "sku" = 'KB-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-004-3.jpg', 2 FROM "products" WHERE "sku" = 'KB-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/kb-004-4.jpg', 3 FROM "products" WHERE "sku" = 'KB-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-001.jpg', 0 FROM "products" WHERE "sku" = 'HS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-001-2.jpg', 1 FROM "products" WHERE "sku" = 'HS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-001-3.jpg', 2 FROM "products" WHERE "sku" = 'HS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-001-4.jpg', 3 FROM "products" WHERE "sku" = 'HS-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-002.jpg', 0 FROM "products" WHERE "sku" = 'HS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-002-2.jpg', 1 FROM "products" WHERE "sku" = 'HS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-002-3.jpg', 2 FROM "products" WHERE "sku" = 'HS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-002-4.jpg', 3 FROM "products" WHERE "sku" = 'HS-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-003.jpg', 0 FROM "products" WHERE "sku" = 'HS-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-003-2.jpg', 1 FROM "products" WHERE "sku" = 'HS-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/hs-003-3.jpg', 2 FROM "products" WHERE "sku" = 'HS-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-001.jpg', 0 FROM "products" WHERE "sku" = 'MN-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-001-2.jpg', 1 FROM "products" WHERE "sku" = 'MN-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-001-3.jpg', 2 FROM "products" WHERE "sku" = 'MN-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-001-4.jpg', 3 FROM "products" WHERE "sku" = 'MN-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-002.jpg', 0 FROM "products" WHERE "sku" = 'MN-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-002-2.jpg', 1 FROM "products" WHERE "sku" = 'MN-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-002-3.jpg', 2 FROM "products" WHERE "sku" = 'MN-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-002-4.jpg', 3 FROM "products" WHERE "sku" = 'MN-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-003.jpg', 0 FROM "products" WHERE "sku" = 'MN-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-003-2.jpg', 1 FROM "products" WHERE "sku" = 'MN-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-003-3.jpg', 2 FROM "products" WHERE "sku" = 'MN-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/mn-003-4.jpg', 3 FROM "products" WHERE "sku" = 'MN-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-001.jpg', 0 FROM "products" WHERE "sku" = 'CH-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-001-2.jpg', 1 FROM "products" WHERE "sku" = 'CH-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-001-3.jpg', 2 FROM "products" WHERE "sku" = 'CH-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-001-4.jpg', 3 FROM "products" WHERE "sku" = 'CH-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-002.jpg', 0 FROM "products" WHERE "sku" = 'CH-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-002-2.jpg', 1 FROM "products" WHERE "sku" = 'CH-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-002-3.jpg', 2 FROM "products" WHERE "sku" = 'CH-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ch-002-4.jpg', 3 FROM "products" WHERE "sku" = 'CH-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-001.jpg', 0 FROM "products" WHERE "sku" = 'CT-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-001-2.jpg', 1 FROM "products" WHERE "sku" = 'CT-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-001-3.jpg', 2 FROM "products" WHERE "sku" = 'CT-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-001-4.jpg', 3 FROM "products" WHERE "sku" = 'CT-001';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-002.jpg', 0 FROM "products" WHERE "sku" = 'CT-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-002-2.jpg', 1 FROM "products" WHERE "sku" = 'CT-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-002-3.jpg', 2 FROM "products" WHERE "sku" = 'CT-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-002-4.jpg', 3 FROM "products" WHERE "sku" = 'CT-002';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-003.jpg', 0 FROM "products" WHERE "sku" = 'CT-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-003-2.jpg', 1 FROM "products" WHERE "sku" = 'CT-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-003-3.jpg', 2 FROM "products" WHERE "sku" = 'CT-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-003-4.jpg', 3 FROM "products" WHERE "sku" = 'CT-003';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-004.jpg', 0 FROM "products" WHERE "sku" = 'CT-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-004-2.jpg', 1 FROM "products" WHERE "sku" = 'CT-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-004-3.jpg', 2 FROM "products" WHERE "sku" = 'CT-004';
+INSERT INTO "product_images" ("product_id", "image_url", "sort_order") SELECT "product_id", '/products/ct-004-4.jpg', 3 FROM "products" WHERE "sku" = 'CT-004';
+
 -- ===== Lock down the Supabase REST API =====
 ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "addresses" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "password_reset_tokens" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "categories" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "products" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "product_images" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "carts" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "cart_items" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "orders" ENABLE ROW LEVEL SECURITY;

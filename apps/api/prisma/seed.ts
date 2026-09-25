@@ -33,7 +33,8 @@ async function main() {
         description: p.description,
         price: p.price,
         stockQuantity: p.stock,
-        imageUrl: p.imageUrl,
+        imageUrl: p.images[0] ?? null,
+        images: { create: p.images.map((url, sortOrder) => ({ url, sortOrder })) },
         categoryId: categoryIds.get(p.category),
       },
     });

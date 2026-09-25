@@ -1,5 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsIn,
   IsInt,
@@ -18,7 +20,8 @@ export type ProductSort = (typeof PRODUCT_SORTS)[number];
 
 /** Absolute http(s) URL (e.g. Supabase Storage) or a path served by the web app (e.g. /products/ms-001.jpg). */
 const IMAGE_URL = /^(https?:\/\/|\/(?!\/))\S+$/;
-const IMAGE_URL_MSG = { message: 'imageUrl ต้องเป็น URL (http/https) หรือ path ที่ขึ้นต้นด้วย /' };
+const IMAGE_URL_MSG = { each: true, message: 'รูปสินค้าต้องเป็น URL (http/https) หรือ path ที่ขึ้นต้นด้วย /' };
+export const MAX_PRODUCT_IMAGES = 10;
 
 const toBool = ({ value }: { value: unknown }) => value === true || value === 'true' || value === '1';
 
@@ -44,7 +47,8 @@ export class CreateProductDto {
   @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) price: number;
   @Type(() => Number) @IsInt() @Min(0) stockQuantity: number;
   @IsOptional() @Type(() => Number) @IsInt() categoryId?: number | null;
-  @IsOptional() @Matches(IMAGE_URL, IMAGE_URL_MSG) imageUrl?: string | null;
+  /** Gallery in display order; the first one becomes the cover (products.image_url). */
+  @IsOptional() @IsArray() @ArrayMaxSize(MAX_PRODUCT_IMAGES) @Matches(IMAGE_URL, IMAGE_URL_MSG) images?: string[];
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
@@ -55,7 +59,8 @@ export class UpdateProductDto {
   @IsOptional() @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) price?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) stockQuantity?: number;
   @IsOptional() @Type(() => Number) @IsInt() categoryId?: number | null;
-  @IsOptional() @Matches(IMAGE_URL, IMAGE_URL_MSG) imageUrl?: string | null;
+  /** Gallery in display order; the first one becomes the cover (products.image_url). */
+  @IsOptional() @IsArray() @ArrayMaxSize(MAX_PRODUCT_IMAGES) @Matches(IMAGE_URL, IMAGE_URL_MSG) images?: string[];
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 

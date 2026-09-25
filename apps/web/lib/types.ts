@@ -18,6 +18,12 @@ export interface Category {
   productCount?: number;
 }
 
+export interface ProductImage {
+  id: number;
+  url: string;
+  sortOrder: number;
+}
+
 export interface Product {
   id: number;
   categoryId: number | null;
@@ -26,7 +32,10 @@ export interface Product {
   description: string;
   price: number;
   stockQuantity: number;
+  /** Cover image (the first gallery image). */
   imageUrl: string | null;
+  /** Full gallery; only included on detail and admin endpoints. */
+  images?: ProductImage[];
   isActive: boolean;
   category: Category | null;
   rating: { avg: number; count: number };

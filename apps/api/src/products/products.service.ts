@@ -50,10 +50,13 @@ export class ProductsService {
     return new Map(rows.map((r) => [r.productId, { avg: r._avg.rating ?? 0, count: r._count._all }]));
   }
 
-  private async search(query: ProductQueryDto, where: Prisma.ProductWhereInput) {
+  private async search(query: ProductQueryDto, where: Prisma.ProductWhereInput, withImages = false) {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 12;
-    const include = { category: true };
+    const include = {
+      category: true,
+      ...(withImages && { images: { orderBy: { sortOrder: 'asc' as const } } }),
+    };
 
     if (query.sort === 'rating') {
       // Ratings live in another table, so sort in memory (the catalog is small).
@@ -87,24 +90,43 @@ export class ProductsService {
   adminList(query: AdminProductQueryDto) {
     const status = query.status ?? 'all';
     const isActive = status === 'all' ? undefined : status === 'active';
-    return this.search(query, this.buildWhere(query, isActive));
+    return this.search(query, this.buildWhere(query, isActive), true);
   }
 
   async detail(id: number, includeInactive = false) {
-    const product = await this.prisma.product.findUnique({ where: { id }, include: { category: true } });
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: { category: true, images: { orderBy: { sortOrder: 'asc' } } },
+    });
     if (!product || (!product.isActive && !includeInactive)) throw new NotFoundException('ไม่พบสินค้า');
     const rating = (await this.ratings([id])).get(id) ?? { avg: 0, count: 0 };
     return { ...product, rating };
   }
 
-  create(dto: CreateProductDto) {
-    return this.prisma.product.create({ data: { ...dto, sku: dto.sku.trim().toUpperCase() } });
+  create({ images, ...dto }: CreateProductDto) {
+    return this.prisma.product.create({
+      data: {
+        ...dto,
+        sku: dto.sku.trim().toUpperCase(),
+        imageUrl: images?.[0] ?? null,
+        images: images && { create: images.map((url, sortOrder) => ({ url, sortOrder })) },
+      },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
+    });
   }
 
-  update(id: number, dto: UpdateProductDto) {
-    return this.prisma.product.update({
-      where: { id },
-      data: { ...dto, sku: dto.sku?.trim().toUpperCase() },
+  /** When `images` is sent it replaces the whole gallery (order included) and resets the cover. */
+  update(id: number, { images, ...dto }: UpdateProductDto) {
+    return this.prisma.$transaction(async (tx) => {
+      if (images) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        await tx.productImage.createMany({ data: images.map((url, sortOrder) => ({ productId: id, url, sortOrder })) });
+      }
+      return tx.product.update({
+        where: { id },
+        data: { ...dto, sku: dto.sku?.trim().toUpperCase(), ...(images && { imageUrl: images[0] ?? null }) },
+        include: { images: { orderBy: { sortOrder: 'asc' } } },
+      });
     });
   }
 

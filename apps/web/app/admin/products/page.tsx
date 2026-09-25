@@ -1,7 +1,8 @@
 'use client';
 
-import { Boxes, Pencil, Plus, RotateCcw, Search, Trash2, Upload } from 'lucide-react';
+import { Boxes, Images, Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { GalleryEditor } from '@/components/GalleryEditor';
 import { Modal } from '@/components/Modal';
 import { Badge, ErrorBox, PageTitle, ProductImage, Spinner } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
@@ -16,11 +17,11 @@ type FormState = {
   price: string;
   stockQuantity: string;
   categoryId: string;
-  imageUrl: string;
+  images: string[];
   isActive: boolean;
 };
 
-const EMPTY: FormState = { sku: '', name: '', description: '', price: '', stockQuantity: '0', categoryId: '', imageUrl: '', isActive: true };
+const EMPTY: FormState = { sku: '', name: '', description: '', price: '', stockQuantity: '0', categoryId: '', images: [], isActive: true };
 
 function ProductForm({
   product,
@@ -41,7 +42,8 @@ function ProductForm({
           price: String(product.price),
           stockQuantity: String(product.stockQuantity),
           categoryId: product.categoryId ? String(product.categoryId) : '',
-          imageUrl: product.imageUrl ?? '',
+          // Older products may only have a cover and no gallery rows yet.
+          images: product.images?.length ? product.images.map((i) => i.url) : product.imageUrl ? [product.imageUrl] : [],
           isActive: product.isActive,
         }
       : EMPTY,
@@ -50,20 +52,6 @@ function ProductForm({
   const [uploading, setUploading] = useState(false);
   const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm({ ...form, [k]: e.target.value });
-
-  const upload = async (file: File) => {
-    const fd = new FormData();
-    fd.append('file', file);
-    setUploading(true);
-    try {
-      const { url } = await api.post<{ url: string }>('/admin/products/upload-image', fd);
-      setForm((f) => ({ ...f, imageUrl: url }));
-    } catch (e) {
-      toast(errorMessage(e), 'error');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -75,7 +63,7 @@ function ProductForm({
       price: Number(form.price),
       stockQuantity: Number(form.stockQuantity),
       categoryId: form.categoryId ? Number(form.categoryId) : null,
-      imageUrl: form.imageUrl || null,
+      images: form.images,
       isActive: form.isActive,
     };
     try {
@@ -91,26 +79,13 @@ function ProductForm({
   };
 
   return (
-    <form onSubmit={submit} className="grid gap-4 sm:grid-cols-[180px_1fr]">
-      <div className="space-y-2">
-        <div className="aspect-square overflow-hidden rounded-lg border border-line">
-          <ProductImage
-            src={form.imageUrl || null}
-            category={categories.find((c) => String(c.id) === form.categoryId)?.name}
-            alt="รูปสินค้า"
-          />
-        </div>
-        <label className="btn-ghost w-full cursor-pointer">
-          <Upload size={15} /> {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูป'}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="sr-only"
-            disabled={uploading}
-            onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
-          />
-        </label>
-      </div>
+    <form onSubmit={submit} className="space-y-5">
+      <GalleryEditor
+        images={form.images}
+        onChange={(images) => setForm((f) => ({ ...f, images }))}
+        category={categories.find((c) => String(c.id) === form.categoryId)?.name}
+        onUploadingChange={setUploading}
+      />
       <div className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
           <div>
@@ -140,10 +115,6 @@ function ProductForm({
               ))}
             </select>
           </div>
-        </div>
-        <div>
-          <label className="label" htmlFor="img">URL รูปภาพ (หรืออัปโหลดทางซ้าย)</label>
-          <input id="img" type="url" className="input" value={form.imageUrl} onChange={set('imageUrl')} />
         </div>
         <div>
           <label className="label" htmlFor="desc">รายละเอียด</label>
@@ -303,7 +274,12 @@ export default function AdminProductsPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="truncate">{p.name}</p>
-                        <p className="text-xs text-muted">{p.sku}</p>
+                        <p className="flex items-center gap-2 text-xs text-muted">
+                          {p.sku}
+                          <span className="inline-flex items-center gap-0.5" title="จำนวนรูป">
+                            <Images size={12} /> {p.images?.length ?? 0}
+                          </span>
+                        </p>
                       </div>
                     </div>
                   </td>

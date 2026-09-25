@@ -22,14 +22,22 @@ const seed = [
   ...PRODUCTS.map(
     (p) =>
       `INSERT INTO "products" ("category_id", "sku", "product_name", "description", "price", "stock_quantity", "image_url") ` +
-      `SELECT "category_id", ${q(p.sku)}, ${q(p.name)}, ${q(p.description)}, ${p.price}, ${p.stock}, ${q(p.imageUrl)} FROM "categories" WHERE "category_name" = ${q(p.category)} ON CONFLICT ("sku") DO NOTHING;`,
+      `SELECT "category_id", ${q(p.sku)}, ${q(p.name)}, ${q(p.description)}, ${p.price}, ${p.stock}, ${p.images[0] ? q(p.images[0]) : 'NULL'} FROM "categories" WHERE "category_name" = ${q(p.category)} ON CONFLICT ("sku") DO NOTHING;`,
+  ),
+  '',
+  ...PRODUCTS.flatMap((p) =>
+    p.images.map(
+      (url, i) =>
+        `INSERT INTO "product_images" ("product_id", "image_url", "sort_order") ` +
+        `SELECT "product_id", ${q(url)}, ${i} FROM "products" WHERE "sku" = ${q(p.sku)};`,
+    ),
   ),
 ];
 
 // The app only talks to Postgres through the NestJS API (as the `postgres` role, which bypasses RLS).
 // Enabling RLS with no policies blocks Supabase's auto-generated REST API from reading these tables
 // (e.g. password hashes) with the public anon key.
-const TABLES = ['users', 'addresses', 'password_reset_tokens', 'categories', 'products', 'carts', 'cart_items', 'orders', 'order_items', 'payments', 'reviews'];
+const TABLES = ['users', 'addresses', 'password_reset_tokens', 'categories', 'products', 'product_images', 'carts', 'cart_items', 'orders', 'order_items', 'payments', 'reviews'];
 const security = [
   '',
   '-- ===== Lock down the Supabase REST API =====',

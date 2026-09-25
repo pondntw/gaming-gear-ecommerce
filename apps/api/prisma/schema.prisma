@@ -90,11 +90,24 @@ model Product {
   isActive      Boolean   @default(true) @map("is_active")
   category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
+  images     ProductImage[]
   cartItems  CartItem[]
   orderItems OrderItem[]
   reviews    Review[]
 
   @@map("products")
+}
+
+/// Gallery images; products.image_url mirrors the first one as the cover.
+model ProductImage {
+  id        Int     @id @default(autoincrement()) @map("image_id")
+  productId Int     @map("product_id")
+  url       String  @map("image_url")
+  sortOrder Int     @default(0) @map("sort_order")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+  @@map("product_images")
 }
 
 model Cart {
