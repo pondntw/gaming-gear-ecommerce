@@ -67,7 +67,7 @@ function PaymentForm({ order, onDone }: { order: Order; onDone: (o: Order) => vo
           </label>
         ))}
       </div>
-      <div className="rounded-lg bg-surface-2 p-4 text-sm">
+      <div className="rounded-xl bg-surface p-4 text-sm">
         {method === 'promptpay' ? (
           <p>พร้อมเพย์: <span className="font-mono text-accent">{BANK_INFO.promptpay}</span> ({BANK_INFO.name})</p>
         ) : (

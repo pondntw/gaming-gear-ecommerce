@@ -17,7 +17,7 @@ const SORTS = [
 ];
 
 const pill = (active: boolean) =>
-  `shrink-0 rounded-full px-4 py-1.5 text-sm transition ${active ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-surface-2'}`;
+  `shrink-0 rounded-full px-4 py-1.5 text-sm transition ${active ? 'bg-ink text-white' : 'bg-surface text-ink hover:bg-surface-2'}`;
 
 function ProductsView() {
   const params = useSearchParams();
@@ -109,7 +109,7 @@ function ProductsView() {
           </button>
           <select
             aria-label="เรียงตาม"
-            className="rounded-full bg-white px-3 py-1.5 outline-none"
+            className="rounded-full bg-surface px-3 py-1.5 outline-none"
             value={sort}
             onChange={(e) => update({ sort: e.target.value })}
           >
@@ -171,7 +171,7 @@ function ProductsView() {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
-                  className={`h-9 w-9 rounded-full text-sm ${n === page ? 'bg-ink text-white' : 'bg-white hover:bg-surface-2'}`}
+                  className={`h-9 w-9 rounded-full text-sm ${n === page ? 'bg-ink text-white' : 'bg-surface hover:bg-surface-2'}`}
                   onClick={() => update({ page: String(n) })}
                 >
                   {n}

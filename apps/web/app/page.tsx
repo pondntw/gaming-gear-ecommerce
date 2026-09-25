@@ -95,7 +95,7 @@ export default function HomePage() {
               href={`/products?categoryId=${c.id}`}
               className="group flex w-28 shrink-0 snap-start flex-col items-center gap-3 text-center"
             >
-              <div className="h-24 w-24 overflow-hidden rounded-3xl bg-white transition group-hover:shadow-[0_4px_20px_rgb(0_0_0/0.08)]">
+              <div className="card-hover h-24 w-24 overflow-hidden rounded-3xl">
                 <ProductImage src={covers[c.id]?.imageUrl ?? null} category={c.name} alt="" />
               </div>
               <span className="text-sm font-medium">{c.name}</span>

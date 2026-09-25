@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={href}
                 href={href}
                 className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
-                  active(href) ? 'bg-accent text-white' : 'text-ink hover:bg-white'
+                  active(href) ? 'bg-accent text-white' : 'text-ink hover:bg-surface'
                 }`}
               >
                 {/* Coloured rounded-square icons, like macOS System Settings. */}

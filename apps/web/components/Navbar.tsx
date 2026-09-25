@@ -196,7 +196,7 @@ const FOOTER = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-line bg-surface text-xs text-muted">
+    <footer className="border-t border-line bg-white text-xs text-muted">
       <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6">
         <p className="border-b border-line pb-4">
           ส่งฟรีเมื่อซื้อครบ ฿3,000 · ชำระเงินผ่านโอนธนาคารหรือพร้อมเพย์ · รีวิวได้เฉพาะผู้ที่ซื้อสินค้าแล้ว

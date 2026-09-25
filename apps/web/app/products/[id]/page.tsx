@@ -104,11 +104,11 @@ export default function ProductDetailPage() {
               <button className="btn-primary w-full py-3" disabled>สินค้าหมด</button>
             ) : (
               <>
-                <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-2">
+                <div className="flex items-center justify-between rounded-2xl bg-surface px-4 py-2">
                   <span className="text-sm text-muted">จำนวน</span>
                   <div className="flex items-center gap-4">
                     <button
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-surface disabled:opacity-40"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm disabled:opacity-40"
                       disabled={qty <= 1}
                       onClick={() => setQty(qty - 1)}
                       aria-label="ลดจำนวน"
@@ -117,7 +117,7 @@ export default function ProductDetailPage() {
                     </button>
                     <span className="w-6 text-center font-medium">{qty}</span>
                     <button
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-surface disabled:opacity-40"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm disabled:opacity-40"
                       disabled={qty >= product.stockQuantity}
                       onClick={() => setQty(qty + 1)}
                       aria-label="เพิ่มจำนวน"

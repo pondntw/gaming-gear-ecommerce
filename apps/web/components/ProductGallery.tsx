@@ -48,7 +48,7 @@ export function ProductGallery({ product }: { product: Product }) {
               aria-label={`ดูรูปที่ ${i + 1}`}
               aria-current={i === index}
               className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white transition ${
-                i === index ? 'ring-2 ring-accent' : 'opacity-60 hover:opacity-100'
+                i === index ? 'ring-2 ring-accent' : 'opacity-60 ring-1 ring-line hover:opacity-100'
               }`}
             >
               <ProductImage src={url} alt="" />
