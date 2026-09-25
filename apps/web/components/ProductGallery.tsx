@@ -40,7 +40,7 @@ export function ProductGallery({ product }: { product: Product }) {
         )}
       </div>
       {urls.length > 1 && (
-        <div className="flex justify-center gap-3 overflow-x-auto pb-1">
+        <div className="flex justify-center gap-3 overflow-x-auto p-1">
           {urls.map((url, i) => (
             <button
               key={url + i}
