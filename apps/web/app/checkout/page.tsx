@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 import { AddressForm } from '@/components/AddressForm';
 import { ErrorBox, ProductImage, RequireAuth, Spinner } from '@/components/ui';
+import { formatAddress } from '@/lib/address';
 import { api, errorMessage } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { useStore } from '@/lib/store';
@@ -104,7 +105,7 @@ function CheckoutView() {
                 <Choice key={a.id} selected={addressId === a.id} onSelect={() => setAddressId(a.id)}>
                   <p className="pr-8 font-medium">{a.recipientName}</p>
                   <p className="text-sm text-muted">{a.phone}</p>
-                  <p className="mt-2 text-sm">{a.addressLine}</p>
+                  <p className="mt-2 text-sm">{formatAddress(a)}</p>
                   {a.isDefault && <p className="mt-2 text-xs text-muted">ที่อยู่หลัก</p>}
                 </Choice>
               ))}

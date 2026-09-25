@@ -76,7 +76,12 @@ export interface Address {
   id: number;
   recipientName: string;
   phone: string;
+  /** House number / moo / soi / road. */
   addressLine: string;
+  subdistrict: string;
+  district: string;
+  province: string;
+  postalCode: string;
   isDefault: boolean;
 }
 

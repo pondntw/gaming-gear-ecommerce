@@ -54,7 +54,12 @@ model Address {
   userId        Int     @map("user_id")
   recipientName String  @map("recipient_name")
   phone         String
+  /// House number / moo / soi / road. Legacy rows may hold the whole address here.
   addressLine   String  @map("address_line")
+  subdistrict   String  @default("")
+  district      String  @default("")
+  province      String  @default("")
+  postalCode    String  @default("") @map("postal_code")
   isDefault     Boolean @default(false) @map("is_default")
   user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 

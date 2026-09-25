@@ -4,6 +4,7 @@ import { Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { AddressForm, AddressInput } from '@/components/AddressForm';
 import { PageTitle, RequireAuth, Spinner } from '@/components/ui';
+import { formatAddress } from '@/lib/address';
 import { api, errorMessage } from '@/lib/api';
 import { useStore } from '@/lib/store';
 import type { Address, User } from '@/lib/types';
@@ -146,7 +147,7 @@ function AddressSection() {
                 {a.recipientName} · {a.phone}
                 {a.isDefault && <span className="ml-2 text-xs text-accent">ที่อยู่หลัก</span>}
               </p>
-              <p className="text-muted">{a.addressLine}</p>
+              <p className="text-muted">{formatAddress(a)}</p>
             </div>
             <div className="flex gap-1">
               {!a.isDefault && (

@@ -34,6 +34,10 @@ CREATE TABLE "addresses" (
     "recipient_name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "address_line" TEXT NOT NULL,
+    "subdistrict" TEXT NOT NULL DEFAULT '',
+    "district" TEXT NOT NULL DEFAULT '',
+    "province" TEXT NOT NULL DEFAULT '',
+    "postal_code" TEXT NOT NULL DEFAULT '',
     "is_default" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "addresses_pkey" PRIMARY KEY ("address_id")
@@ -217,7 +221,7 @@ ALTER TABLE "reviews" ADD CONSTRAINT "reviews_product_id_fkey" FOREIGN KEY ("pro
 
 
 -- ===== Seed data =====
-INSERT INTO "users" ("full_name", "email", "password_hash", "phone", "role") VALUES ('Admin', 'admin@gaminggear.local', '$2b$10$aY4jDVALN0joWDrgWbBtVecn2NDWqjUrRjhSQC3vCArPX4l3jHOeS', '0800000000', 'admin') ON CONFLICT ("email") DO NOTHING;
+INSERT INTO "users" ("full_name", "email", "password_hash", "phone", "role") VALUES ('Admin', 'admin@gaminggear.local', '$2b$10$S0MV/K.0kZc0k.FedMKfmuy8bKXB83R4l544VyLdhvJAzAbB4H.jC', '0800000000', 'admin') ON CONFLICT ("email") DO NOTHING;
 
 INSERT INTO "categories" ("category_name") VALUES ('Mouse') ON CONFLICT DO NOTHING;
 INSERT INTO "categories" ("category_name") VALUES ('Keyboard') ON CONFLICT DO NOTHING;
