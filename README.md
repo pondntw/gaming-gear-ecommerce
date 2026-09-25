@@ -30,10 +30,10 @@
    npm install
    ```
 2. **สร้างฐานข้อมูล**: เปิด Supabase → SQL Editor แล้วรันไฟล์ [`supabase/schema.sql`](supabase/schema.sql) ทั้งไฟล์ ไฟล์นี้จะสร้างตาราง ข้อมูลตัวอย่าง (6 หมวด, 20 สินค้า, บัญชีแอดมิน) และ Storage bucket 2 อัน
-   - ทางเลือก: ใส่ `.env` ตามข้อ 3 ก่อน แล้วรัน `npm run db:push && npm run db:seed` (วิธีนี้ไม่สร้าง bucket ให้ ต้องสร้างเองใน Supabase → Storage: `product-images` แบบ public และ `payment-slips` แบบ private)
-3. **ตั้งค่า environment**: ดูตัวอย่างใน [`.env.example`](.env.example)
-   - `apps/api/.env`: `DATABASE_URL`, `DIRECT_URL` (Supabase → Connect), `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API), `WEB_ORIGIN`
-   - `apps/web/.env.local`: `NEXT_PUBLIC_API_URL=http://localhost:4000/api`
+   - ทางเลือก: ตั้งค่า `apps/api/.env` ตามข้อ 3 ก่อน แล้วรัน `npm run db:push && npm run db:seed` (วิธีนี้ไม่สร้าง bucket ให้ ต้องสร้างเองใน Supabase → Storage: `product-images` แบบ public และ `payment-slips` แบบ private)
+3. **ตั้งค่า environment**: คัดลอกไฟล์ตัวอย่างแล้วกรอกค่า (ในไฟล์มีคำอธิบายว่าแต่ละค่าหาได้จากไหน)
+   - [`apps/api/.env.example`](apps/api/.env.example) → `apps/api/.env`
+   - [`apps/web/.env.local.example`](apps/web/.env.local.example) → `apps/web/.env.local`
 4. **รันทั้งสองแอป**
    ```bash
    npm run dev
