@@ -7,7 +7,7 @@ export function ProductCard({ product }: { product: Product }) {
   const out = product.stockQuantity === 0;
   return (
     <Link href={`/products/${product.id}`} className="card-glow group flex flex-col overflow-hidden">
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-square overflow-hidden">
         <ProductImage
           src={product.imageUrl}
           category={product.category?.name}

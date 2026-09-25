@@ -21,8 +21,8 @@ const seed = [
   '',
   ...PRODUCTS.map(
     (p) =>
-      `INSERT INTO "products" ("category_id", "sku", "product_name", "description", "price", "stock_quantity") ` +
-      `SELECT "category_id", ${q(p.sku)}, ${q(p.name)}, ${q(p.description)}, ${p.price}, ${p.stock} FROM "categories" WHERE "category_name" = ${q(p.category)} ON CONFLICT ("sku") DO NOTHING;`,
+      `INSERT INTO "products" ("category_id", "sku", "product_name", "description", "price", "stock_quantity", "image_url") ` +
+      `SELECT "category_id", ${q(p.sku)}, ${q(p.name)}, ${q(p.description)}, ${p.price}, ${p.stock}, ${q(p.imageUrl)} FROM "categories" WHERE "category_name" = ${q(p.category)} ON CONFLICT ("sku") DO NOTHING;`,
   ),
 ];
 

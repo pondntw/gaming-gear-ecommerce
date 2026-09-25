@@ -6,7 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -15,6 +15,10 @@ import {
 
 export const PRODUCT_SORTS = ['newest', 'price_asc', 'price_desc', 'name', 'rating'] as const;
 export type ProductSort = (typeof PRODUCT_SORTS)[number];
+
+/** Absolute http(s) URL (e.g. Supabase Storage) or a path served by the web app (e.g. /products/ms-001.jpg). */
+const IMAGE_URL = /^(https?:\/\/|\/(?!\/))\S+$/;
+const IMAGE_URL_MSG = { message: 'imageUrl ต้องเป็น URL (http/https) หรือ path ที่ขึ้นต้นด้วย /' };
 
 const toBool = ({ value }: { value: unknown }) => value === true || value === 'true' || value === '1';
 
@@ -40,7 +44,7 @@ export class CreateProductDto {
   @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) price: number;
   @Type(() => Number) @IsInt() @Min(0) stockQuantity: number;
   @IsOptional() @Type(() => Number) @IsInt() categoryId?: number | null;
-  @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string | null;
+  @IsOptional() @Matches(IMAGE_URL, IMAGE_URL_MSG) imageUrl?: string | null;
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
@@ -51,7 +55,7 @@ export class UpdateProductDto {
   @IsOptional() @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) price?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) stockQuantity?: number;
   @IsOptional() @Type(() => Number) @IsInt() categoryId?: number | null;
-  @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string | null;
+  @IsOptional() @Matches(IMAGE_URL, IMAGE_URL_MSG) imageUrl?: string | null;
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 

@@ -33,6 +33,7 @@ async function main() {
         description: p.description,
         price: p.price,
         stockQuantity: p.stock,
+        imageUrl: p.imageUrl,
         categoryId: categoryIds.get(p.category),
       },
     });
