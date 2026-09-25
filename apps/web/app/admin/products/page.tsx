@@ -121,7 +121,7 @@ function ProductForm({
           <textarea id="desc" className="input min-h-24" value={form.description} onChange={set('description')} />
         </div>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" className="accent-[#22e3ff]" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
+          <input type="checkbox" className="accent-accent" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
           วางขาย (แสดงหน้าร้าน)
         </label>
         <button className="btn-primary" disabled={busy || uploading}>{product ? 'บันทึกการแก้ไข' : 'เพิ่มสินค้า'}</button>
@@ -153,13 +153,13 @@ function StockForm({ product, onSaved }: { product: Product; onSaved: () => void
   return (
     <form onSubmit={submit} className="space-y-4">
       <p className="text-sm">
-        {product.name} — คงเหลือปัจจุบัน <span className="font-semibold text-neon-cyan">{product.stockQuantity}</span> ชิ้น
+        {product.name} — คงเหลือปัจจุบัน <span className="font-semibold text-accent">{product.stockQuantity}</span> ชิ้น
       </p>
       <div className="flex gap-2 text-sm">
-        <button type="button" className={mode === 'delta' ? 'btn-cyan' : 'btn-ghost'} onClick={() => setMode('delta')}>
+        <button type="button" className={mode === 'delta' ? 'btn-secondary' : 'btn-ghost'} onClick={() => setMode('delta')}>
           รับเข้า / ตัดออก
         </button>
-        <button type="button" className={mode === 'set' ? 'btn-cyan' : 'btn-ghost'} onClick={() => setMode('set')}>
+        <button type="button" className={mode === 'set' ? 'btn-secondary' : 'btn-ghost'} onClick={() => setMode('set')}>
           กำหนดจำนวนใหม่
         </button>
       </div>
@@ -216,7 +216,7 @@ export default function AdminProductsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <PageTitle sub="เพิ่ม แก้ไข ลบสินค้า และจัดการสต็อก">PRODUCTS</PageTitle>
+        <PageTitle sub="เพิ่ม แก้ไข ลบสินค้า และจัดการสต็อก">สินค้า</PageTitle>
         <button className="btn-primary" onClick={() => setEditing('new')}>
           <Plus size={16} /> เพิ่มสินค้า
         </button>
@@ -285,7 +285,7 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="text-muted">{p.category?.name ?? '-'}</td>
                   <td className="text-right">{formatPrice(p.price)}</td>
-                  <td className={`text-right ${p.stockQuantity === 0 ? 'text-red-300' : p.stockQuantity < 5 ? 'text-amber-300' : ''}`}>
+                  <td className={`text-right ${p.stockQuantity === 0 ? 'text-danger' : p.stockQuantity < 5 ? 'text-warn' : ''}`}>
                     {p.stockQuantity}
                   </td>
                   <td>{p.isActive ? <Badge tone="green">วางขาย</Badge> : <Badge>ซ่อน</Badge>}</td>
@@ -298,7 +298,7 @@ export default function AdminProductsPage() {
                         <Pencil size={15} />
                       </button>
                       <button
-                        className={p.isActive ? 'btn-danger px-2 py-1' : 'btn-cyan px-2 py-1'}
+                        className={p.isActive ? 'btn-danger px-2 py-1' : 'btn-secondary px-2 py-1'}
                         title={p.isActive ? 'ลบ' : 'นำกลับมาขาย'}
                         onClick={() => toggleActive(p)}
                       >

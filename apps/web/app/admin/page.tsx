@@ -30,7 +30,7 @@ export default function AdminDashboard() {
 
   const totalOrders = Object.values(stats.ordersByStatus).reduce((a, b) => a + (b ?? 0), 0);
   const tiles = [
-    { label: 'ยอดขาย (ชำระแล้ว)', value: formatPrice(stats.revenue), accent: 'text-neon-pink' },
+    { label: 'ยอดขาย (ชำระแล้ว)', value: formatPrice(stats.revenue), accent: 'text-ink' },
     { label: 'คำสั่งซื้อทั้งหมด', value: totalOrders.toLocaleString() },
     { label: 'ลูกค้า', value: stats.customers.toLocaleString() },
     { label: 'สินค้าที่วางขาย', value: stats.products.toLocaleString() },
@@ -39,7 +39,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <PageTitle>DASHBOARD</PageTitle>
+      <PageTitle>ภาพรวม</PageTitle>
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {tiles.map((t) => (
           <div key={t.label} className="card p-5">
@@ -50,8 +50,8 @@ export default function AdminDashboard() {
       </div>
 
       {todo > 0 && (
-        <Link href="/admin/orders?status=payment_review" className="card-glow flex items-center gap-3 border-violet-400/50 p-4">
-          <AlertTriangle className="text-violet-300" />
+        <Link href="/admin/orders?status=payment_review" className="card-hover flex items-center gap-3 border-transparent p-4">
+          <AlertTriangle className="text-[#6e3ad6]" />
           มีคำสั่งซื้อที่ต้องดำเนินการ {todo} รายการ (ตรวจสลิป / เตรียมจัดส่ง)
         </Link>
       )}
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
           <ul className="space-y-2">
             {[...STATUS_FLOW, 'cancelled' as const].map((s) => (
               <li key={s}>
-                <Link href={`/admin/orders?status=${s}`} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-white/5">
+                <Link href={`/admin/orders?status=${s}`} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-surface">
                   <StatusBadge status={s} />
                   <span className="font-medium">{stats.ordersByStatus[s] ?? 0}</span>
                 </Link>
@@ -81,12 +81,12 @@ export default function AdminDashboard() {
                   <span className="truncate">
                     <span className="text-muted">{p.sku}</span> {p.name}
                   </span>
-                  <span className={p.stockQuantity === 0 ? 'text-red-300' : 'text-amber-300'}>{p.stockQuantity} ชิ้น</span>
+                  <span className={p.stockQuantity === 0 ? 'text-danger' : 'text-warn'}>{p.stockQuantity} ชิ้น</span>
                 </li>
               ))}
             </ul>
           )}
-          <Link href="/admin/products" className="mt-4 inline-block text-sm text-neon-cyan hover:underline">จัดการสต็อก →</Link>
+          <Link href="/admin/products" className="mt-4 inline-block text-sm text-accent hover:underline">จัดการสต็อก →</Link>
         </section>
       </div>
     </div>

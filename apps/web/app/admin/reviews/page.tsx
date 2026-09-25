@@ -36,7 +36,7 @@ export default function AdminReviewsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <PageTitle sub="ตรวจสอบและจัดการรีวิวสินค้า">REVIEWS</PageTitle>
+        <PageTitle sub="ตรวจสอบและจัดการรีวิวสินค้า">รีวิว</PageTitle>
         <select className="input w-auto" value={rating} onChange={(e) => setRating(e.target.value)}>
           <option value="">ทุกคะแนน</option>
           {[5, 4, 3, 2, 1].map((n) => (
@@ -54,7 +54,7 @@ export default function AdminReviewsPage() {
             <div key={r.id} className="card flex gap-4 p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <Link href={`/products/${r.productId}`} className="font-medium text-neon-cyan hover:underline">
+                  <Link href={`/products/${r.productId}`} className="font-medium text-accent hover:underline">
                     {r.product?.name}
                   </Link>
                   <Stars value={r.rating} size={13} />
@@ -62,7 +62,7 @@ export default function AdminReviewsPage() {
                 <p className="mt-1 text-xs text-muted">
                   โดย {r.user.fullName} · {formatDate(r.createdAt)}
                 </p>
-                {r.comment && <p className="mt-2 whitespace-pre-line text-sm text-slate-300">{r.comment}</p>}
+                {r.comment && <p className="mt-2 whitespace-pre-line text-sm text-muted">{r.comment}</p>}
               </div>
               <button className="btn-danger h-fit px-2 py-1" title="ลบรีวิว" onClick={() => remove(r)}>
                 <Trash2 size={15} />

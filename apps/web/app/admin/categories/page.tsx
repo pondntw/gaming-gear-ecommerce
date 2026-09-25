@@ -42,7 +42,7 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="max-w-2xl">
-      <PageTitle sub="จัดการหมวดหมู่สินค้า">CATEGORIES</PageTitle>
+      <PageTitle sub="จัดการหมวดหมู่สินค้า">หมวดหมู่</PageTitle>
       <form onSubmit={create} className="mb-4 flex gap-2">
         <input className="input" placeholder="ชื่อหมวดหมู่ใหม่" required value={newName} onChange={(e) => setNewName(e.target.value)} />
         <button className="btn-primary shrink-0"><Plus size={16} /> เพิ่ม</button>
@@ -59,7 +59,7 @@ export default function AdminCategoriesPage() {
                 }}
               >
                 <input className="input" autoFocus required value={editName} onChange={(e) => setEditName(e.target.value)} />
-                <button className="btn-cyan px-2" aria-label="บันทึก"><Check size={16} /></button>
+                <button className="btn-secondary px-2" aria-label="บันทึก"><Check size={16} /></button>
                 <button type="button" className="btn-ghost px-2" aria-label="ยกเลิก" onClick={() => setEditId(null)}><X size={16} /></button>
               </form>
             ) : (
