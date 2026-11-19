@@ -1,6 +1,6 @@
 'use client';
 
-import { Boxes, Images, Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { Images, Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { GalleryEditor } from '@/components/GalleryEditor';
 import { Modal } from '@/components/Modal';
@@ -69,7 +69,7 @@ function ProductForm({
       name: form.name,
       description: form.description,
       price: Number(form.price),
-      stockQuantity: Number(form.stockQuantity),
+      ...(product ? {} : { stockQuantity: Number(form.stockQuantity) }),
       categoryId: form.categoryId ? Number(form.categoryId) : null,
       images: form.images,
       details: form.details.trim(),
@@ -116,7 +116,21 @@ function ProductForm({
           </div>
           <div>
             <label className="label" htmlFor="stock">สต็อก</label>
-            <input id="stock" type="number" min={0} className="input" required value={form.stockQuantity} onChange={set('stockQuantity')} />
+            <input
+              id="stock"
+              type="number"
+              min={0}
+              className="input disabled:bg-surface disabled:text-muted disabled:cursor-not-allowed"
+              disabled={!!product}
+              required={!product}
+              value={form.stockQuantity}
+              onChange={set('stockQuantity')}
+            />
+            {product ? (
+              <p className="mt-1 text-xs text-muted">ไม่อนุญาตให้ปรับสต็อกด้วยตนเอง (อัปเดตอัตโนมัติตามคำสั่งซื้อ)</p>
+            ) : (
+              <p className="mt-1 text-xs text-muted">กำหนดสต็อกเริ่มต้นเมื่อสร้างสินค้า</p>
+            )}
           </div>
           <div>
             <label className="label" htmlFor="cat">หมวดหมู่</label>
@@ -156,50 +170,6 @@ function ProductForm({
   );
 }
 
-function StockForm({ product, onSaved }: { product: Product; onSaved: () => void }) {
-  const { toast } = useStore();
-  const [mode, setMode] = useState<'delta' | 'set'>('delta');
-  const [value, setValue] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      await api.patch(`/admin/products/${product.id}/stock`, { [mode]: Number(value) });
-      toast('ปรับสต็อกแล้ว');
-      onSaved();
-    } catch (err) {
-      toast(errorMessage(err), 'error');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <form onSubmit={submit} className="space-y-4">
-      <p className="text-sm">
-        {product.name} — คงเหลือปัจจุบัน <span className="font-semibold text-accent">{product.stockQuantity}</span> ชิ้น
-      </p>
-      <div className="flex gap-2 text-sm">
-        <button type="button" className={mode === 'delta' ? 'btn-secondary' : 'btn-ghost'} onClick={() => setMode('delta')}>
-          รับเข้า / ตัดออก
-        </button>
-        <button type="button" className={mode === 'set' ? 'btn-secondary' : 'btn-ghost'} onClick={() => setMode('set')}>
-          กำหนดจำนวนใหม่
-        </button>
-      </div>
-      <div>
-        <label className="label" htmlFor="stockValue">
-          {mode === 'delta' ? 'จำนวนที่ปรับ (ใส่ค่าลบเพื่อตัดสต็อก เช่น -2)' : 'จำนวนคงเหลือใหม่'}
-        </label>
-        <input id="stockValue" type="number" className="input" required min={mode === 'set' ? 0 : undefined} value={value} onChange={(e) => setValue(e.target.value)} />
-      </div>
-      <button className="btn-primary" disabled={busy || value === ''}>บันทึก</button>
-    </form>
-  );
-}
-
 export default function AdminProductsPage() {
   const { toast } = useStore();
   const [data, setData] = useState<Paged<Product> | null>(null);
@@ -210,7 +180,6 @@ export default function AdminProductsPage() {
   const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Product | 'new' | null>(null);
-  const [stocking, setStocking] = useState<Product | null>(null);
   const [error, setError] = useState('');
 
   const load = useCallback(() => {
@@ -250,7 +219,7 @@ export default function AdminProductsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <PageTitle sub="เพิ่ม แก้ไข ลบสินค้า และจัดการสต็อก">สินค้า</PageTitle>
+        <PageTitle sub="เพิ่ม แก้ไข ลบสินค้า (สต็อกอัปเดตอัตโนมัติตามคำสั่งซื้อ)">สินค้า</PageTitle>
         <button className="btn-primary" onClick={() => setEditing('new')}>
           <Plus size={16} /> เพิ่มสินค้า
         </button>
@@ -325,9 +294,6 @@ export default function AdminProductsPage() {
                   <td>{p.isActive ? <Badge tone="green">วางขาย</Badge> : <Badge>ซ่อน</Badge>}</td>
                   <td>
                     <div className="flex justify-end gap-1">
-                      <button className="btn-ghost px-2 py-1" title="ปรับสต็อก" onClick={() => setStocking(p)}>
-                        <Boxes size={15} />
-                      </button>
                       <button className="btn-ghost px-2 py-1" title="แก้ไข" onClick={() => openEdit(p)}>
                         <Pencil size={15} />
                       </button>
@@ -367,17 +333,6 @@ export default function AdminProductsPage() {
             categories={categories}
             onSaved={() => {
               setEditing(null);
-              load();
-            }}
-          />
-        </Modal>
-      )}
-      {stocking && (
-        <Modal title="ปรับสต็อกสินค้า" onClose={() => setStocking(null)}>
-          <StockForm
-            product={stocking}
-            onSaved={() => {
-              setStocking(null);
               load();
             }}
           />

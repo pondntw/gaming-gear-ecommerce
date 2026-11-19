@@ -151,20 +151,7 @@ export class ProductsService {
     return { ok: true };
   }
 
-  async adjustStock(id: number, dto: AdjustStockDto) {
-    if ((dto.set === undefined) === (dto.delta === undefined)) {
-      throw new BadRequestException('ระบุ set หรือ delta อย่างใดอย่างหนึ่ง');
-    }
-    if (dto.set !== undefined) {
-      return this.prisma.product.update({ where: { id }, data: { stockQuantity: dto.set } });
-    }
-    const delta = dto.delta!;
-    // Conditional update so a negative delta can never push stock below zero.
-    const { count } = await this.prisma.product.updateMany({
-      where: { id, stockQuantity: { gte: Math.max(0, -delta) } },
-      data: { stockQuantity: { increment: delta } },
-    });
-    if (!count) throw new BadRequestException('สต็อกไม่พอสำหรับการปรับลด');
-    return this.prisma.product.findUniqueOrThrow({ where: { id } });
+  async adjustStock(_id: number, _dto: AdjustStockDto) {
+    throw new BadRequestException('ไม่อนุญาตให้ปรับสต็อกสินค้าด้วยตนเอง สต็อกจะถูกตัดและคืนอัตโนมัติตามคำสั่งซื้อ');
   }
 }

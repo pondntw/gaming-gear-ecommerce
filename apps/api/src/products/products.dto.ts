@@ -68,7 +68,6 @@ export class UpdateProductDto {
   @IsOptional() @IsString() @MinLength(1) @MaxLength(200) name?: string;
   @IsOptional() @IsString() @MaxLength(5000) description?: string;
   @IsOptional() @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) price?: number;
-  @IsOptional() @Type(() => Number) @IsInt() @Min(0) stockQuantity?: number;
   @IsOptional() @Type(() => Number) @IsInt() categoryId?: number | null;
   /** Gallery in display order; the first one becomes the cover (products.image_url). */
   @IsOptional() @IsArray() @ArrayMaxSize(MAX_PRODUCT_IMAGES) @Matches(IMAGE_URL, IMAGE_URL_MSG) images?: string[];
