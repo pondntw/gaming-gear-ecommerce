@@ -18,6 +18,7 @@ const PERIOD_OPTIONS = [
 ] as const;
 
 type Period = (typeof PERIOD_OPTIONS)[number]['value'];
+const PERIODS_FALLBACK = PERIOD_OPTIONS[4];
 
 function AdminDashboardView() {
   const router = useRouter();
@@ -196,8 +197,6 @@ function AdminDashboardView() {
     </div>
   );
 }
-
-const PERIODS_FALLBACK = PERIOD_OPTIONS[4];
 
 export default function AdminDashboardPage() {
   return (
