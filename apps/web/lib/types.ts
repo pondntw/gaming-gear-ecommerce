@@ -137,3 +137,16 @@ export interface OrderOptions {
   paymentMethods: Record<string, string>;
   freeShippingMin: number;
 }
+
+export interface AdminStats {
+  period: string;
+  customers: number;
+  totalCustomers?: number;
+  products: number;
+  reviews: number;
+  ordersByStatus: Partial<Record<OrderStatus, number>>;
+  revenue: number;
+  lowStock: { id: number; name: string; sku: string; stockQuantity: number }[];
+  todoCount?: number;
+}
+
