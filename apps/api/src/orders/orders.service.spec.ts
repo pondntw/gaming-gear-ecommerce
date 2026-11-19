@@ -99,6 +99,22 @@ describe('OrdersService', () => {
     expect(order.total).toBe(4500);
   });
 
+  it('checkout with a saved address stores the formatted one-line address', async () => {
+    const { prisma, createdOrders } = makePrisma({ stock: { 1: 5, 2: 5 } });
+    prisma.address.findFirst.mockResolvedValue({
+      recipientName: 'สมชาย',
+      phone: '0812345678',
+      addressLine: '99 ถ.พหลโยธิน',
+      subdistrict: 'คลองหนึ่ง',
+      district: 'คลองหลวง',
+      province: 'ปทุมธานี',
+      postalCode: '12120',
+    });
+    await new OrdersService(prisma, storage).checkout(7, { shippingMethod: 'standard', addressId: 3 });
+    expect(prisma.address.findFirst).toHaveBeenCalledWith({ where: { id: 3, userId: 7 } });
+    expect(createdOrders[0].shippingAddress).toBe('99 ถ.พหลโยธิน ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12120');
+  });
+
   it('checkout fails when stock is insufficient', async () => {
     const { prisma } = makePrisma({ stock: { 1: 1, 2: 5 } });
     const service = new OrdersService(prisma, storage);

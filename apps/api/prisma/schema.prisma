@@ -54,7 +54,12 @@ model Address {
   userId        Int     @map("user_id")
   recipientName String  @map("recipient_name")
   phone         String
+  /// House number / moo / soi / road. Legacy rows may hold the whole address here.
   addressLine   String  @map("address_line")
+  subdistrict   String  @default("")
+  district      String  @default("")
+  province      String  @default("")
+  postalCode    String  @default("") @map("postal_code")
   isDefault     Boolean @default(false) @map("is_default")
   user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -84,6 +89,11 @@ model Product {
   sku           String    @unique
   name          String    @map("product_name")
   description   String    @default("")
+  /// Long overview; blank lines separate paragraphs.
+  details       String    @default("")
+  highlights    String[]  @default([])
+  /// Ordered spec table: [{ label, value }].
+  specs         Json      @default("[]")
   price         Decimal   @db.Decimal(10, 2)
   stockQuantity Int       @default(0) @map("stock_quantity")
   imageUrl      String?   @map("image_url")

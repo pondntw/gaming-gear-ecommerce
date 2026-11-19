@@ -73,9 +73,9 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/orders" className="text-sm text-muted hover:text-white">← คำสั่งซื้อทั้งหมด</Link>
+      <Link href="/admin/orders" className="text-sm text-muted hover:text-ink">← คำสั่งซื้อทั้งหมด</Link>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="neon-title text-2xl">ORDER #{order.id}</h1>
+        <h1 className="section-title">คำสั่งซื้อ #{order.id}</h1>
         <StatusBadge status={order.status} />
         <span className="text-sm text-muted">{formatDate(order.orderDate)}</span>
       </div>
@@ -85,7 +85,7 @@ export default function AdminOrderDetailPage() {
       </div>
 
       {pendingPayment && order.status === 'payment_review' && (
-        <section className="card space-y-4 border-violet-400/60 p-5">
+        <section className="card space-y-4 border-transparent p-5">
           <h2 className="flex items-center gap-2 font-medium">
             ตรวจสอบการชำระเงิน <PaymentBadge status="pending" />
           </h2>
@@ -99,7 +99,7 @@ export default function AdminOrderDetailPage() {
               <p className="text-sm text-muted">ไม่สามารถโหลดรูปสลิปได้</p>
             )}
             <div className="space-y-2 text-sm">
-              <p>ยอดที่ต้องชำระ: <span className="font-semibold text-neon-pink">{formatPrice(order.total)}</span></p>
+              <p>ยอดที่ต้องชำระ: <span className="font-semibold text-ink">{formatPrice(order.total)}</span></p>
               <p>ยอดที่แจ้ง: {formatPrice(pendingPayment.amount)}</p>
               <p>วิธีชำระ: {pendingPayment.paymentMethod === 'promptpay' ? 'พร้อมเพย์' : 'โอนผ่านธนาคาร'}</p>
               <p className="text-muted">แจ้งเมื่อ {formatDate(pendingPayment.paidAt)}</p>
@@ -156,7 +156,7 @@ export default function AdminOrderDetailPage() {
               <div>
                 <label className="label" htmlFor="tracking">เลขพัสดุ</label>
                 <input id="tracking" className="input font-mono" placeholder="เช่น TH1234567890" value={tracking} onChange={(e) => setTracking(e.target.value)} />
-                {nextStatus === 'shipped' && !tracking && <p className="mt-1 text-xs text-amber-300">ต้องระบุเลขพัสดุก่อนเปลี่ยนเป็น “จัดส่งแล้ว”</p>}
+                {nextStatus === 'shipped' && !tracking && <p className="mt-1 text-xs text-warn">ต้องระบุเลขพัสดุก่อนเปลี่ยนเป็น “จัดส่งแล้ว”</p>}
               </div>
               <button className="btn-primary w-full" disabled={busy}>บันทึก</button>
             </form>

@@ -34,11 +34,11 @@ function AdminOrdersView() {
 
   return (
     <div>
-      <PageTitle sub="ตรวจสลิป อัปเดตสถานะ และเลขพัสดุ">ORDERS</PageTitle>
+      <PageTitle sub="ตรวจสลิป อัปเดตสถานะ และเลขพัสดุ">คำสั่งซื้อ</PageTitle>
       <div className="mb-4 flex flex-wrap gap-2">
-        <button className={!status ? 'btn-cyan py-1.5' : 'btn-ghost py-1.5'} onClick={() => go({ status: '' })}>ทั้งหมด</button>
+        <button className={!status ? 'btn-secondary py-1.5' : 'btn-ghost py-1.5'} onClick={() => go({ status: '' })}>ทั้งหมด</button>
         {(Object.keys(ORDER_STATUS) as OrderStatus[]).map((s) => (
-          <button key={s} className={status === s ? 'btn-cyan py-1.5' : 'btn-ghost py-1.5'} onClick={() => go({ status: s })}>
+          <button key={s} className={status === s ? 'btn-secondary py-1.5' : 'btn-ghost py-1.5'} onClick={() => go({ status: s })}>
             {ORDER_STATUS[s].label}
           </button>
         ))}
@@ -71,9 +71,9 @@ function AdminOrdersView() {
             </thead>
             <tbody>
               {orders.map((o) => (
-                <tr key={o.id} className="cursor-pointer hover:bg-white/5" onClick={() => router.push(`/admin/orders/${o.id}`)}>
+                <tr key={o.id} className="cursor-pointer hover:bg-surface" onClick={() => router.push(`/admin/orders/${o.id}`)}>
                   <td>
-                    <Link href={`/admin/orders/${o.id}`} className="font-display text-neon-cyan">#{o.id}</Link>
+                    <Link href={`/admin/orders/${o.id}`} className=" text-accent">#{o.id}</Link>
                   </td>
                   <td className="whitespace-nowrap text-muted">{formatDate(o.orderDate)}</td>
                   <td>

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { formatAddress } from '../users/address-format';
 import { PAYMENT_SLIPS_BUCKET, StorageService } from '../storage/storage.service';
 import { ADMIN_TRANSITIONS, CUSTOMER_CANCELLABLE, orderTotals, shippingFee } from './order-rules';
 import { AdminOrderQueryDto, AdminUpdateOrderDto, CheckoutDto, PaymentDto } from './orders.dto';
@@ -43,7 +44,7 @@ export class OrdersService {
     if (dto.addressId) {
       const a = await this.prisma.address.findFirst({ where: { id: dto.addressId, userId } });
       if (!a) throw new NotFoundException('ไม่พบที่อยู่');
-      shipping = { name: a.recipientName, phone: a.phone, address: a.addressLine };
+      shipping = { name: a.recipientName, phone: a.phone, address: formatAddress(a) };
     }
 
     const orderId = await this.prisma.$transaction(async (tx) => {

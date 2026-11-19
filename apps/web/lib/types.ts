@@ -24,6 +24,11 @@ export interface ProductImage {
   sortOrder: number;
 }
 
+export interface ProductSpec {
+  label: string;
+  value: string;
+}
+
 export interface Product {
   id: number;
   categoryId: number | null;
@@ -36,6 +41,10 @@ export interface Product {
   imageUrl: string | null;
   /** Full gallery; only included on detail and admin endpoints. */
   images?: ProductImage[];
+  /** Long-form content; only included on the product detail endpoints. */
+  details?: string;
+  highlights?: string[];
+  specs?: ProductSpec[];
   isActive: boolean;
   category: Category | null;
   rating: { avg: number; count: number };
@@ -67,7 +76,12 @@ export interface Address {
   id: number;
   recipientName: string;
   phone: string;
+  /** House number / moo / soi / road. */
   addressLine: string;
+  subdistrict: string;
+  district: string;
+  province: string;
+  postalCode: string;
   isDefault: boolean;
 }
 
@@ -123,3 +137,16 @@ export interface OrderOptions {
   paymentMethods: Record<string, string>;
   freeShippingMin: number;
 }
+
+export interface AdminStats {
+  period: string;
+  customers: number;
+  totalCustomers?: number;
+  products: number;
+  reviews: number;
+  ordersByStatus: Partial<Record<OrderStatus, number>>;
+  revenue: number;
+  lowStock: { id: number; name: string; sku: string; stockQuantity: number }[];
+  todoCount?: number;
+}
+

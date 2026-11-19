@@ -32,14 +32,14 @@ function ResetForm() {
 
   if (!token) {
     return (
-      <AuthCard title="RESET PASSWORD">
+      <AuthCard title="ลิงก์ไม่ถูกต้อง">
         <ErrorBox message="ลิงก์ไม่ถูกต้อง กรุณาขอลิงก์รีเซ็ตรหัสผ่านใหม่" />
       </AuthCard>
     );
   }
 
   return (
-    <AuthCard title="NEW PASSWORD" sub="ตั้งรหัสผ่านใหม่ของคุณ">
+    <AuthCard title="ตั้งรหัสผ่านใหม่" sub="ตั้งรหัสผ่านใหม่ของคุณ">
       {done ? (
         <div className="space-y-4 text-center">
           <p>ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว</p>

@@ -34,7 +34,7 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <PageTitle sub="จัดการบัญชีผู้ใช้และสิทธิ์">USERS</PageTitle>
+      <PageTitle sub="จัดการบัญชีผู้ใช้และสิทธิ์">ผู้ใช้งาน</PageTitle>
       <form
         className="relative mb-4 max-w-md"
         onSubmit={(e) => {

@@ -26,14 +26,14 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthCard title="RESET PASSWORD" sub="กรอกอีเมลที่ใช้สมัครสมาชิก">
+    <AuthCard title="ลืมรหัสผ่าน" sub="กรอกอีเมลที่ใช้สมัครสมาชิก">
       {result ? (
         <div className="space-y-4 text-center">
           <p>{result.message}</p>
           {result.resetUrl && (
-            <div className="rounded-lg border border-amber-400/50 bg-amber-400/10 p-3 text-left text-sm">
-              <p className="mb-1 text-amber-200">โหมดทดสอบ (ยังไม่ได้เชื่อมระบบอีเมล):</p>
-              <a href={result.resetUrl} className="break-all text-neon-cyan underline">
+            <div className="rounded-lg border border-transparent bg-[#fff4e5] p-3 text-left text-sm">
+              <p className="mb-1 text-warn">โหมดทดสอบ (ยังไม่ได้เชื่อมระบบอีเมล):</p>
+              <a href={result.resetUrl} className="break-all text-accent underline">
                 {result.resetUrl}
               </a>
             </div>
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
           </div>
           <button className="btn-primary w-full py-2.5" disabled={busy}>ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
           <p className="text-center text-sm">
-            <Link href="/login" className="text-neon-cyan hover:underline">กลับไปหน้าเข้าสู่ระบบ</Link>
+            <Link href="/login" className="text-accent hover:underline">กลับไปหน้าเข้าสู่ระบบ</Link>
           </p>
         </form>
       )}

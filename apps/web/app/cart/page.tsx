@@ -1,22 +1,24 @@
 'use client';
 
-import { AlertTriangle, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { AlertTriangle, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Empty, ErrorBox, PageTitle, ProductImage, RequireAuth, Spinner } from '@/components/ui';
+import { Empty, ErrorBox, ProductImage, RequireAuth, Spinner } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { useStore } from '@/lib/store';
-import type { Cart } from '@/lib/types';
+import type { Cart, OrderOptions } from '@/lib/types';
 
 function CartView() {
   const { setCart: setCartCount, toast } = useStore();
   const [cart, setCart] = useState<Cart | null>(null);
+  const [options, setOptions] = useState<OrderOptions | null>(null);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
     api.get<Cart>('/cart').then(setCart).catch((e) => setError(errorMessage(e)));
+    api.get<OrderOptions>('/orders/options').then(setOptions).catch(() => {});
   }, []);
 
   const mutate = async (itemId: number, fn: () => Promise<Cart>) => {
@@ -37,89 +39,107 @@ function CartView() {
 
   if (!cart.items.length) {
     return (
-      <>
-        <PageTitle>MY CART</PageTitle>
-        <Empty icon={ShoppingCart} title="ตะกร้าสินค้าว่างอยู่">
+      <div className="mx-auto max-w-2xl">
+        <Empty icon={ShoppingBag} title="ถุงของคุณว่างอยู่">
+          <p className="text-muted">เลือกดูอุปกรณ์เกมมิ่งแล้วเพิ่มลงในถุงได้เลย</p>
           <Link href="/products" className="btn-primary">เลือกซื้อสินค้า</Link>
         </Empty>
-      </>
+      </div>
     );
   }
 
   const hasProblem = cart.items.some((i) => !i.available);
+  const freeMin = options?.freeShippingMin ?? 0;
+  const standardFee = options?.shippingMethods.standard?.fee ?? 0;
+  const shipping = cart.subtotal >= freeMin ? 0 : standardFee;
 
   return (
-    <>
-      <PageTitle sub={`${cart.itemCount} ชิ้น`}>MY CART</PageTitle>
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-3">
-          {cart.items.map((item) => (
-            <div key={item.id} className={`card flex gap-4 p-3 ${busyId === item.id ? 'opacity-60' : ''}`}>
-              <Link href={`/products/${item.productId}`} className="h-24 w-24 shrink-0 overflow-hidden rounded-lg">
-                <ProductImage src={item.product.imageUrl} category={item.product.category?.name} alt={item.product.name} />
-              </Link>
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <Link href={`/products/${item.productId}`} className="font-medium hover:text-neon-cyan">
+    <div className="mx-auto max-w-[980px] space-y-10">
+      <div className="text-center">
+        <h1 className="headline">ยอดรวมในถุงของคุณคือ {formatPrice(cart.subtotal + shipping)}</h1>
+        <p className="mt-3 text-muted">
+          {options && cart.subtotal < freeMin
+            ? `ซื้อเพิ่มอีก ${formatPrice(freeMin - cart.subtotal)} เพื่อรับสิทธิ์ส่งฟรี`
+            : 'คำสั่งซื้อนี้ได้รับสิทธิ์ส่งฟรี'}
+        </p>
+        <Link
+          href={hasProblem ? '#' : '/checkout'}
+          aria-disabled={hasProblem}
+          className={`btn-primary mt-6 px-10 py-3 text-[17px] ${hasProblem ? 'pointer-events-none opacity-40' : ''}`}
+        >
+          ชำระเงิน
+        </Link>
+      </div>
+
+      {hasProblem && <ErrorBox message="มีสินค้าบางรายการที่สต็อกไม่พอ กรุณาปรับจำนวนหรือลบออกก่อนชำระเงิน" />}
+
+      <div className="card divide-y divide-line/70 px-6 sm:px-10">
+        {cart.items.map((item) => (
+          <div key={item.id} className={`flex gap-6 py-8 ${busyId === item.id ? 'opacity-50' : ''}`}>
+            <Link href={`/products/${item.productId}`} className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-surface sm:h-36 sm:w-36">
+              <ProductImage src={item.product.imageUrl} category={item.product.category?.name} alt={item.product.name} />
+            </Link>
+            <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:justify-between">
+              <div className="space-y-1">
+                <Link href={`/products/${item.productId}`} className="text-xl font-semibold tracking-tight hover:underline">
                   {item.product.name}
                 </Link>
-                <span className="text-sm text-muted">{formatPrice(item.product.price)} / ชิ้น</span>
+                <p className="text-sm text-muted">{formatPrice(item.product.price)} ต่อชิ้น</p>
                 {!item.available && (
-                  <span className="flex items-center gap-1 text-sm text-amber-300">
+                  <p className="flex items-center gap-1 text-sm text-warn">
                     <AlertTriangle size={14} />
                     {item.product.isActive ? `เหลือเพียง ${item.product.stockQuantity} ชิ้น` : 'สินค้านี้ไม่มีจำหน่ายแล้ว'}
-                  </span>
+                  </p>
                 )}
-                <div className="mt-auto flex items-center justify-between gap-2">
-                  <div className="flex items-center rounded-lg border border-line">
-                    <button
-                      className="p-2 hover:text-neon-cyan disabled:opacity-40"
-                      disabled={item.quantity <= 1 || busyId !== null}
-                      onClick={() => mutate(item.id, () => api.patch(`/cart/items/${item.id}`, { quantity: item.quantity - 1 }))}
-                      aria-label="ลดจำนวน"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="w-8 text-center text-sm">{item.quantity}</span>
-                    <button
-                      className="p-2 hover:text-neon-cyan disabled:opacity-40"
-                      disabled={busyId !== null}
-                      onClick={() => mutate(item.id, () => api.patch(`/cart/items/${item.id}`, { quantity: item.quantity + 1 }))}
-                      aria-label="เพิ่มจำนวน"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <span className="font-semibold text-neon-pink">{formatPrice(item.product.price * item.quantity)}</span>
-                  <button
-                    className="p-2 text-muted hover:text-red-400"
-                    disabled={busyId !== null}
-                    onClick={() => mutate(item.id, () => api.del(`/cart/items/${item.id}`))}
-                    aria-label="ลบออกจากตะกร้า"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+              </div>
+              <div className="flex items-start gap-6 sm:flex-col sm:items-end sm:gap-2">
+                <p className="text-xl font-semibold tracking-tight">{formatPrice(item.product.price * item.quantity)}</p>
+                <select
+                  aria-label="จำนวน"
+                  className="rounded-lg bg-surface px-3 py-1.5 text-sm outline-none"
+                  disabled={busyId !== null}
+                  value={item.quantity}
+                  onChange={(e) =>
+                    mutate(item.id, () => api.patch(`/cart/items/${item.id}`, { quantity: Number(e.target.value) }))
+                  }
+                >
+                  {Array.from({ length: Math.max(1, item.quantity, Math.min(10, item.product.stockQuantity)) }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                <button
+                  className="link text-sm"
+                  disabled={busyId !== null}
+                  onClick={() => mutate(item.id, () => api.del(`/cart/items/${item.id}`))}
+                >
+                  ลบออก
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-
-        <aside className="card h-fit space-y-4 p-5">
-          <h2 className="font-medium">สรุปตะกร้า</h2>
-          <div className="flex justify-between">
-            <span className="text-muted">ยอดรวมสินค้า</span>
-            <span className="text-lg font-semibold">{formatPrice(cart.subtotal)}</span>
           </div>
-          <p className="text-xs text-muted">ค่าจัดส่งคำนวณในขั้นตอนถัดไป</p>
-          {hasProblem && <ErrorBox message="มีสินค้าบางรายการที่สต็อกไม่พอ กรุณาปรับจำนวนหรือลบออกก่อน" />}
-          {hasProblem ? (
-            <button className="btn-primary w-full py-2.5" disabled>ดำเนินการสั่งซื้อ</button>
-          ) : (
-            <Link href="/checkout" className="btn-primary w-full py-2.5">ดำเนินการสั่งซื้อ</Link>
-          )}
-        </aside>
+        ))}
       </div>
-    </>
+
+      <div className="ml-auto max-w-md space-y-3 px-2 text-[15px]">
+        <div className="flex justify-between"><span>ยอดรวมย่อย</span><span>{formatPrice(cart.subtotal)}</span></div>
+        <div className="flex justify-between">
+          <span>ค่าจัดส่ง (ธรรมดา)</span>
+          <span>{shipping === 0 ? 'ฟรี' : formatPrice(shipping)}</span>
+        </div>
+        <div className="flex justify-between border-t border-line pt-4 text-2xl font-semibold tracking-tight">
+          <span>ยอดรวม</span>
+          <span>{formatPrice(cart.subtotal + shipping)}</span>
+        </div>
+        <p className="text-xs text-muted">เปลี่ยนเป็นส่งด่วนได้ในขั้นตอนชำระเงิน</p>
+        <Link
+          href={hasProblem ? '#' : '/checkout'}
+          aria-disabled={hasProblem}
+          className={`btn-primary w-full py-3 text-[17px] ${hasProblem ? 'pointer-events-none opacity-40' : ''}`}
+        >
+          ชำระเงิน
+        </Link>
+      </div>
+    </div>
   );
 }
 

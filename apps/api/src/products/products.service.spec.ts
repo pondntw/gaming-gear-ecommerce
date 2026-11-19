@@ -2,10 +2,17 @@ import { ProductsService } from './products.service';
 
 function makePrisma() {
   const prisma: any = {
-    product: { create: jest.fn(async (args: any) => args), update: jest.fn(async (args: any) => args) },
+    product: {
+      create: jest.fn(async (args: any) => args),
+      update: jest.fn(async (args: any) => args),
+      findMany: jest.fn(async () => []),
+      count: jest.fn(async () => 0),
+    },
+    review: { groupBy: jest.fn(async () => []) },
     productImage: { deleteMany: jest.fn(), createMany: jest.fn() },
   };
-  prisma.$transaction = jest.fn(async (fn: any) => fn(prisma));
+  // Supports both interactive (callback) and batch (array) transactions.
+  prisma.$transaction = jest.fn(async (arg: any) => (typeof arg === 'function' ? arg(prisma) : Promise.all(arg)));
   return prisma;
 }
 
@@ -52,5 +59,26 @@ describe('ProductsService gallery', () => {
     await new ProductsService(prisma).update(5, { price: 10 });
     expect(prisma.productImage.deleteMany).not.toHaveBeenCalled();
     expect(prisma.product.update.mock.calls[0][0].data).not.toHaveProperty('imageUrl');
+  });
+
+  it('update stores details, highlights and specs as plain JSON', async () => {
+    const prisma = makePrisma();
+    await new ProductsService(prisma).update(5, {
+      details: 'ย่อหน้า 1\n\nย่อหน้า 2',
+      highlights: ['เบา', 'ไร้สาย'],
+      specs: [{ label: ' น้ำหนัก ', value: ' 60 กรัม ' }],
+    });
+    const { data } = prisma.product.update.mock.calls[0][0];
+    expect(data.details).toBe('ย่อหน้า 1\n\nย่อหน้า 2');
+    expect(data.highlights).toEqual(['เบา', 'ไร้สาย']);
+    expect(data.specs).toEqual([{ label: 'น้ำหนัก', value: '60 กรัม' }]);
+  });
+});
+
+describe('ProductsService lists', () => {
+  it('omits the long-form fields from product lists', async () => {
+    const prisma = makePrisma();
+    await new ProductsService(prisma).list({});
+    expect(prisma.product.findMany.mock.calls[0][0].omit).toEqual({ details: true, highlights: true, specs: true });
   });
 });
