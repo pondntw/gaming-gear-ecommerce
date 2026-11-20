@@ -57,7 +57,7 @@ export default function AdminOrderDetailPage() {
 
   const submitUpdate = (e: FormEvent) => {
     e.preventDefault();
-    if (nextStatus === 'cancelled' && !confirm('ยืนยันยกเลิกคำสั่งซื้อนี้? สินค้าจะถูกคืนเข้าสต็อก')) return;
+    if (nextStatus === 'cancelled' && !confirm('ยืนยันยกเลิกคำสั่งซื้อนี้?')) return;
     act(
       () =>
         api.patch<Order>(`/admin/orders/${order.id}`, {
@@ -157,6 +157,7 @@ export default function AdminOrderDetailPage() {
                 <label className="label" htmlFor="tracking">เลขพัสดุ</label>
                 <input id="tracking" className="input font-mono" placeholder="เช่น TH1234567890" value={tracking} onChange={(e) => setTracking(e.target.value)} />
                 {nextStatus === 'shipped' && !tracking && <p className="mt-1 text-xs text-warn">ต้องระบุเลขพัสดุก่อนเปลี่ยนเป็น “จัดส่งแล้ว”</p>}
+                {nextStatus === 'shipped' && <p className="mt-1 text-xs text-accent">เมื่อเปลี่ยนเป็น “จัดส่งแล้ว” ระบบจะตัดสต็อกสินค้าในคำสั่งซื้อนี้โดยอัตโนมัติ</p>}
               </div>
               <button className="btn-primary w-full" disabled={busy}>บันทึก</button>
             </form>

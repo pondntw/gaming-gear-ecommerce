@@ -58,12 +58,9 @@ export class OrdersService {
         if (!item.product.isActive) {
           throw new BadRequestException(`สินค้า ${item.product.name} ไม่มีจำหน่ายแล้ว`);
         }
-        // Conditional decrement: fails instead of overselling if stock changed concurrently.
-        const { count } = await tx.product.updateMany({
-          where: { id: item.productId, stockQuantity: { gte: item.quantity } },
-          data: { stockQuantity: { decrement: item.quantity } },
-        });
-        if (!count) throw new BadRequestException(`สินค้า ${item.product.name} มีไม่พอ`);
+        if (item.product.stockQuantity < item.quantity) {
+          throw new BadRequestException(`สินค้า ${item.product.name} มีไม่พอ (คงเหลือ ${item.product.stockQuantity} ชิ้น)`);
+        }
       }
 
       const subtotal = cart.items.reduce((s, i) => s + Number(i.product.price) * i.quantity, 0);
@@ -129,22 +126,31 @@ export class OrdersService {
   }
 
   /**
-   * Moves an order to `cancelled` only if it is still in one of `from`, and returns
-   * its items to stock. The status check and update happen atomically.
+   * Moves an order to `cancelled` only if it is still in one of `from`.
+   * Returns items to stock only if the order had already been shipped.
    */
   private async cancel(id: number, from: OrderStatus[], errorMessage: string) {
+    const orderBefore = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+    if (!orderBefore || !from.includes(orderBefore.status)) {
+      throw new BadRequestException(errorMessage);
+    }
+    const wasShipped = orderBefore.status === 'shipped' || orderBefore.status === 'delivered';
+
     await this.prisma.$transaction(async (tx) => {
-      const { count } = await tx.order.updateMany({
-        where: { id, status: { in: from } },
+      await tx.order.update({
+        where: { id },
         data: { status: 'cancelled' },
       });
-      if (!count) throw new BadRequestException(errorMessage);
-      const items = await tx.orderItem.findMany({ where: { orderId: id } });
-      for (const item of items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stockQuantity: { increment: item.quantity } },
-        });
+      if (wasShipped) {
+        for (const item of orderBefore.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockQuantity: { increment: item.quantity } },
+          });
+        }
       }
       await tx.payment.updateMany({ where: { orderId: id, status: 'pending' }, data: { status: 'rejected' } });
     });
@@ -184,8 +190,31 @@ export class OrdersService {
         await this.cancel(id, [order.status], 'สถานะคำสั่งซื้อเปลี่ยนไปแล้ว กรุณารีเฟรช');
         return this.adminGet(id);
       }
-      if (dto.status === 'shipped' && !(trackingNumber ?? order.trackingNumber)) {
-        throw new BadRequestException('กรุณาระบุเลขพัสดุก่อนเปลี่ยนเป็นจัดส่งแล้ว');
+      if (dto.status === 'shipped') {
+        const finalTracking = trackingNumber ?? order.trackingNumber;
+        if (!finalTracking) {
+          throw new BadRequestException('กรุณาระบุเลขพัสดุก่อนเปลี่ยนเป็นจัดส่งแล้ว');
+        }
+        // ตอนส่งของ: ตัดสต็อกสินค้าโดยอัตโนมัติ
+        await this.prisma.$transaction(async (tx) => {
+          for (const item of order.items) {
+            const { count } = await tx.product.updateMany({
+              where: { id: item.productId, stockQuantity: { gte: item.quantity } },
+              data: { stockQuantity: { decrement: item.quantity } },
+            });
+            if (!count) {
+              const p = await tx.product.findUnique({ where: { id: item.productId } });
+              throw new BadRequestException(
+                `สินค้า ${p?.name ?? item.productId} มีสต็อกไม่พอสำหรับการจัดส่ง (ต้องการ ${item.quantity} ชิ้น)`,
+              );
+            }
+          }
+          await tx.order.update({
+            where: { id },
+            data: { status: 'shipped', trackingNumber: finalTracking },
+          });
+        });
+        return this.adminGet(id);
       }
       if (dto.status === 'processing') {
         // Moving out of payment review manually counts as approving the pending slip.

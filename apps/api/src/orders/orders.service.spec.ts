@@ -26,14 +26,15 @@ function makePrisma(opts: { stock: Record<number, number>; orderStatus?: string 
   const stock = { ...opts.stock };
   let orderStatus = opts.orderStatus ?? 'pending_payment';
   const cartItems = [
-    { id: 1, cartId: 1, productId: 1, quantity: 2, product: { id: 1, name: 'Mouse', price: 1000, isActive: true } },
-    { id: 2, cartId: 1, productId: 2, quantity: 1, product: { id: 2, name: 'Keyboard', price: 2500, isActive: true } },
+    { id: 1, cartId: 1, productId: 1, quantity: 2, product: { id: 1, name: 'Mouse', price: 1000, stockQuantity: stock[1] ?? 5, isActive: true } },
+    { id: 2, cartId: 1, productId: 2, quantity: 1, product: { id: 2, name: 'Keyboard', price: 2500, stockQuantity: stock[2] ?? 5, isActive: true } },
   ];
   const createdOrders: any[] = [];
 
   const prisma: any = {
     cart: { findUnique: jest.fn(async () => ({ id: 1, items: cartItems })) },
     product: {
+      findUnique: jest.fn(async ({ where }: any) => ({ id: where.id, name: 'Prod' })),
       updateMany: jest.fn(async ({ where, data }: any) => {
         if (stock[where.id] < where.stockQuantity.gte) return { count: 0 };
         stock[where.id] -= data.stockQuantity.decrement;
@@ -48,12 +49,26 @@ function makePrisma(opts: { stock: Record<number, number>; orderStatus?: string 
         createdOrders.push(data);
         return { id: 99 };
       }),
+      update: jest.fn(async ({ where, data }: any) => {
+        if (data.status) orderStatus = data.status;
+        return { id: where.id, status: orderStatus };
+      }),
       updateMany: jest.fn(async ({ where, data }: any) => {
         const allowed = where.status.in ?? [where.status];
         if (!allowed.includes(orderStatus)) return { count: 0 };
         orderStatus = data.status;
         return { count: 1 };
       }),
+      findUnique: jest.fn(async () => ({
+        id: 99,
+        status: orderStatus,
+        shippingFee: 0,
+        items: [
+          { productId: 1, quantity: 2, unitPrice: 1000 },
+          { productId: 2, quantity: 1, unitPrice: 2500 },
+        ],
+        payments: [],
+      })),
       findFirst: jest.fn(async () => ({
         id: 99,
         status: orderStatus,
@@ -83,13 +98,14 @@ const storage: any = { signedUrl: jest.fn(async () => null) };
 const shipping = { shippingName: 'Tester', shippingPhone: '0812345678', shippingAddress: '123 Test Road Bangkok' };
 
 describe('OrdersService', () => {
-  it('checkout decrements stock, snapshots prices, applies free shipping and clears the cart', async () => {
+  it('checkout checks stock, snapshots prices, applies free shipping and clears the cart without reducing stock', async () => {
     const { prisma, stock, createdOrders } = makePrisma({ stock: { 1: 5, 2: 5 } });
     const service = new OrdersService(prisma, storage);
 
     const order = await service.checkout(7, { shippingMethod: 'standard', ...shipping });
 
-    expect(stock).toEqual({ 1: 3, 2: 4 });
+    // Stock is preserved until shipping
+    expect(stock).toEqual({ 1: 5, 2: 5 });
     expect(createdOrders[0].shippingFee).toBe(0); // subtotal 4500 >= 3000
     expect(createdOrders[0].items.create).toEqual([
       { productId: 1, quantity: 2, unitPrice: 1000 },
@@ -122,12 +138,27 @@ describe('OrdersService', () => {
     expect(prisma.order.create).not.toHaveBeenCalled();
   });
 
-  it('customer cancel restores stock', async () => {
-    const { prisma, stock, status } = makePrisma({ stock: { 1: 0, 2: 0 }, orderStatus: 'pending_payment' });
+  it('admin marking shipped decrements stock automatically', async () => {
+    const { prisma, stock, status } = makePrisma({ stock: { 1: 5, 2: 5 }, orderStatus: 'processing' });
+    const service = new OrdersService(prisma, storage);
+    await service.adminUpdate(99, { status: 'shipped', trackingNumber: 'TH123456' });
+    expect(status()).toBe('shipped');
+    expect(stock).toEqual({ 1: 3, 2: 4 });
+  });
+
+  it('admin marking shipped fails if stock is insufficient', async () => {
+    const { prisma, stock } = makePrisma({ stock: { 1: 1, 2: 5 }, orderStatus: 'processing' });
+    const service = new OrdersService(prisma, storage);
+    await expect(service.adminUpdate(99, { status: 'shipped', trackingNumber: 'TH123456' })).rejects.toThrow(BadRequestException);
+    expect(stock).toEqual({ 1: 1, 2: 5 });
+  });
+
+  it('customer cancel before shipping does not alter stock (since stock was not decremented yet)', async () => {
+    const { prisma, stock, status } = makePrisma({ stock: { 1: 5, 2: 5 }, orderStatus: 'pending_payment' });
     const service = new OrdersService(prisma, storage);
     await service.cancelMine(7, 99);
     expect(status()).toBe('cancelled');
-    expect(stock).toEqual({ 1: 2, 2: 1 });
+    expect(stock).toEqual({ 1: 5, 2: 5 });
   });
 
   it('customer cannot cancel once the order has shipped', async () => {
@@ -138,13 +169,13 @@ describe('OrdersService', () => {
   });
 
   it('admin cannot mark shipped without a tracking number', async () => {
-    const { prisma } = makePrisma({ stock: {}, orderStatus: 'processing' });
+    const { prisma } = makePrisma({ stock: { 1: 5, 2: 5 }, orderStatus: 'processing' });
     const service = new OrdersService(prisma, storage);
     await expect(service.adminUpdate(99, { status: 'shipped' })).rejects.toThrow('เลขพัสดุ');
   });
 
   it('admin cannot skip steps in the status flow', async () => {
-    const { prisma } = makePrisma({ stock: {}, orderStatus: 'pending_payment' });
+    const { prisma } = makePrisma({ stock: { 1: 5, 2: 5 }, orderStatus: 'pending_payment' });
     const service = new OrdersService(prisma, storage);
     await expect(service.adminUpdate(99, { status: 'delivered' })).rejects.toThrow(BadRequestException);
   });
